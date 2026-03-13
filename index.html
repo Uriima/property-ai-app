@@ -1,107 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Property Value Estimator</title>
+  <title>AI Property Valuation</title>
   <link rel="manifest" href="manifest.json">
-  <script src="app.js" defer></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 500px;
-      margin: 20px auto;
-      padding: 10px;
-      text-align: center;
-    }
-
-    h2 {
-      margin-bottom: 20px;
-    }
-
-    select,
-    input,
-    button {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      font-size: 16px;
-    }
-
-    #image-input {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    #result {
-      margin-top: 20px;
-      font-weight: bold;
-      font-size: 18px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <h2>AI Property Value Estimator</h2>
+  <h1>AI Property Valuation</h1>
 
-  <label for="city">Select State:</label>
-  <select id="city"></select>
+  <form id="estimateForm" onsubmit="event.preventDefault(); estimate();">
+    <label for="city">State:</label>
+    <select id="city" required>
+      <option value="">--Select State--</option>
+    </select>
 
-  <label for="area">Select Area/Location:</label>
-  <select id="area"></select>
+    <label for="area">Area / LGA:</label>
+    <select id="area" required>
+      <option value="">--Select Area--</option>
+    </select>
 
-  <input id="bedrooms" placeholder="Bedrooms" type="number">
+    <label for="bedrooms">Number of Bedrooms:</label>
+    <input type="number" id="bedrooms" min="1" max="20" required>
 
-  <div id="image-input">
-    <label>Select up to 5 photos of the building (or snap using camera):</label>
-    <input type="file" id="images" accept="image/*" capture="environment" multiple>
-  </div>
+    <label for="images">Upload Photos (up to 5):</label>
+    <input type="file" id="images" accept="image/*" multiple capture="environment">
 
-  <button onclick="estimate()">Estimate Value</button>
+    <button type="submit">Estimate Value</button>
+  </form>
 
-  <p id="result"></p>
+  <div id="result" style="margin-top:20px;font-weight:bold;"></div>
 
-  <script>
-    // List of Nigerian states (cities) and sample popular areas
-    const nigeriaData = {
-      "Lagos": ["Lekki", "Victoria Island", "Ikoyi", "Ikeja", "Yaba"],
-      "Abuja": ["Garki", "Wuse", "Asokoro", "Jabi", "Maitama"],
-      "Rivers": ["Port Harcourt", "Rumuokwurusi", "Trans-Amadi", "GRA", "Diobu"],
-      "Kano": ["Fagge", "Nasarawa", "Tarauni", "Dala", "Kumbotso"],
-      "Oyo": ["Ibadan North", "Ibadan South", "Oke Bola", "Moniya", "Sango"],
-      "Enugu": ["Independence Layout", "GRA", "Uwani", "Abakpa", "New Haven"],
-      "Kaduna": ["Unguwan Sarki", "Kawo", "Barnawa", "Rigasa", "Sabon Gari"],
-      "Jos": ["Jos North", "Jos South", "Angwan Rukuba", "Rayfield", "Kuru"],
-      "Edo": ["Benin City", "Ugbowo", "GRA", "Akpakpava", "Igueben"],
-      "Ogun": ["Abeokuta", "Sango", "Ota", "Ijebu Ode", "Ilaro"]
-      // Add more states and areas as needed
-    };
-
-    const citySelect = document.getElementById("city");
-    const areaSelect = document.getElementById("area");
-
-    // Populate city dropdown
-    Object.keys(nigeriaData).forEach(state => {
-      const opt = document.createElement("option");
-      opt.value = state;
-      opt.textContent = state;
-      citySelect.appendChild(opt);
-    });
-
-    // Update area dropdown based on selected city
-    citySelect.addEventListener("change", () => {
-      areaSelect.innerHTML = '<option value="">--Select Area--</option>';
-      const areas = nigeriaData[citySelect.value] || [];
-      areas.forEach(area => {
-        const opt = document.createElement("option");
-        opt.value = area;
-        opt.textContent = area;
-        areaSelect.appendChild(opt);
-      });
-    });
-  </script>
+  <script src="app.js"></script>
 </body>
-
 </html>

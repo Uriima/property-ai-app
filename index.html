@@ -20,7 +20,8 @@
       margin-bottom: 20px;
     }
 
-    input, button {
+    input,
+    button {
       width: 100%;
       padding: 12px;
       margin: 10px 0;
@@ -42,7 +43,6 @@
 </head>
 
 <body>
-
   <h2>AI Property Value Estimator</h2>
 
   <input id="city" placeholder="City" type="text">
@@ -50,14 +50,13 @@
   <input id="bedrooms" placeholder="Bedrooms" type="number">
 
   <div id="image-input">
-    <label>Select up to 5 photos of the building:</label>
+    <label>Select up to 5 photos of the building (or snap using camera):</label>
     <input type="file" id="images" accept="image/*" capture="environment" multiple>
   </div>
 
   <button onclick="estimate()">Estimate Value</button>
 
   <p id="result"></p>
-
 </body>
 
 </html>

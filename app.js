@@ -20,10 +20,10 @@ async function estimate() {
 
     // Call your Replit backend
     const response = await fetch(
-      "https://9b033143-d8d4-419c-9e55-6ae38a6ed3d2-00-1qy1ac247p5ec.worf.replit.dev/api/estimate",
+      "https://ac24cbe7-acbd-4473-90d0-1c5cc04fc244-00-1fy8wqlwog2wc.worf.replit.dev/api/estimate",
       {
         method: "POST",
-        body: formData,
+        body: formData
       }
     );
 

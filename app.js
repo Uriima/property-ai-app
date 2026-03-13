@@ -18,7 +18,6 @@ async function estimate() {
       formData.append("images", imageFiles[i]);
     }
 
-    // Call your Replit backend
     const response = await fetch(
       "https://ac24cbe7-acbd-4473-90d0-1c5cc04fc244-00-1fy8wqlwog2wc.worf.replit.dev/api/estimate",
       {
@@ -27,13 +26,13 @@ async function estimate() {
       }
     );
 
-    if (!response.ok) {
-      throw new Error("Server returned " + response.status);
-    }
+    if (!response.ok) throw new Error("Server returned " + response.status);
 
     const data = await response.json();
 
-    resultEl.innerText = "Estimated Value: ₦ " + data.price;
+    resultEl.innerText =
+      "Estimated Value: ₦ " + data.price +
+      (data.saved_images ? "\nSaved Images: " + data.saved_images.join(", ") : "");
 
   } catch (error) {
     resultEl.innerText = "Error connecting to server.";

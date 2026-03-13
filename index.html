@@ -1,119 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Nigeria Property AI Valuation</title>
-
-<style>
-
-body{
-font-family:Arial, Helvetica, sans-serif;
-background:#f5f5f5;
-margin:0;
-padding:0;
-}
-
-.container{
-max-width:500px;
-margin:auto;
-background:white;
-padding:25px;
-margin-top:40px;
-border-radius:10px;
-box-shadow:0 5px 20px rgba(0,0,0,0.1);
-}
-
-h1{
-text-align:center;
-color:#2c3e50;
-}
-
-label{
-font-weight:bold;
-margin-top:10px;
-display:block;
-}
-
-select,input{
-width:100%;
-padding:10px;
-margin-top:5px;
-border-radius:5px;
-border:1px solid #ccc;
-}
-
-button{
-margin-top:20px;
-width:100%;
-padding:12px;
-background:#27ae60;
-color:white;
-border:none;
-border-radius:6px;
-font-size:16px;
-cursor:pointer;
-}
-
-button:hover{
-background:#1e874b;
-}
-
-#result{
-margin-top:20px;
-font-size:18px;
-font-weight:bold;
-color:#2c3e50;
-text-align:center;
-}
-
-</style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Property Estimator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      background: #f7f7f7;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    select, input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 5px;
+      background: #fff;
+      border: 1px solid #ccc;
+      min-height: 40px;
+    }
+    .image-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    .image-buttons button {
+      flex: 1;
+    }
+  </style>
 </head>
-
-
 <body>
 
-<div class="container">
+  <h1>AI Property Estimator</h1>
 
-<h1>Property Value Estimator</h1>
+  <label for="city">State</label>
+  <select id="city">
+    <option value="">--Select State--</option>
+  </select>
 
-<label>State</label>
-<select id="city">
-<option value="">--Select State--</option>
-</select>
+  <label for="area">Area / LGA</label>
+  <select id="area">
+    <option value="">--Select Area--</option>
+  </select>
 
-<label>Area / LGA</label>
-<select id="area">
-<option value="">--Select Area--</option>
-</select>
+  <label for="bedrooms">Bedrooms</label>
+  <input type="number" id="bedrooms" min="0" placeholder="Number of bedrooms">
 
-<label>Bedrooms</label>
-<input id="bedrooms" type="number" placeholder="e.g 3">
+  <div class="image-buttons">
+    <button type="button" id="cameraBtn">Take Photo</button>
+    <button type="button" id="galleryBtn">Upload from Gallery</button>
+  </div>
 
-<label>Upload Property Photos (Max 5)</label>
+  <input id="images" type="file" multiple style="display:none;" accept="image/*">
 
-<input 
-type="file"
-id="images"
-accept="image/*"
-capture="environment"
-multiple
->
+  <button type="button" onclick="estimate()">Estimate Value</button>
 
-<button onclick="estimate()">
-Estimate Property Value
-</button>
+  <div id="result"></div>
 
-<div id="result"></div>
-
-</div>
-
-<script src="app.js"></script>
+  <script src="app.js"></script>
 
 </body>
-
 </html>

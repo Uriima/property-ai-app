@@ -1,47 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <title>Property AI</title>
-  <link rel="manifest" href="manifest.json">
-  <style>
-    body { font-family: Arial; margin: 30px; }
-    input, select, button { margin: 5px 0; padding: 5px; width: 200px; }
-    #result { margin-top: 20px; font-weight: bold; }
-  </style>
+<meta charset="UTF-8">
+<title>AI Property Value Estimator</title>
+
+<link rel="manifest" href="manifest.json">
+
+<script src="app.js" defer></script>
+
+<style>
+
+body{
+font-family: Arial;
+max-width: 400px;
+margin: 40px auto;
+text-align: center;
+}
+
+input, button{
+width:100%;
+padding:10px;
+margin:10px 0;
+font-size:16px;
+}
+
+#result{
+margin-top:20px;
+font-weight:bold;
+}
+
+</style>
+
 </head>
+
 <body>
 
-<h1>AI Property Valuation</h1>
+<h2>AI Property Value Estimator</h2>
 
-<input type="file" id="photo"><br>
-<select id="city">
-  <option>Lagos</option>
-  <option>Port Harcourt</option>
-  <option>Abuja</option>
-</select><br>
-<input type="text" id="area" placeholder="Area"><br>
-<select id="type">
-  <option>Duplex</option>
-  <option>Bungalow</option>
-  <option>Apartment</option>
-</select><br>
-<select id="bedrooms">
-  <option>1</option>
-  <option>2</option>
-  <option>3</option>
-  <option>4</option>
-  <option>5</option>
-</select><br>
+<input id="city" placeholder="City">
+
+<input id="area" placeholder="Area">
+
+<input id="bedrooms" placeholder="Bedrooms">
+
 <button onclick="estimate()">Estimate Value</button>
 
-<div id="result"></div>
+<p id="result"></p>
 
-<script src="app.js"></script>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js')
-  .then(() => console.log('Service Worker Registered'));
-}
-</script>
 </body>
+
 </html>

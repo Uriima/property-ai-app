@@ -37,133 +37,120 @@ const nigeriaData = {
 };
 
 // ======================================
+// State Bounding Boxes (Approximate lat/lng)
+// Used to auto-select state based on geolocation
+// ======================================
+
+const stateBounds = {
+  Abia:{minLat:5.3,maxLat:6.2,minLng:7.3,maxLng:8.1},
+  Adamawa:{minLat:7.5,maxLat:10.5,minLng:11.0,maxLng:13.9},
+  AkwaIbom:{minLat:4.3,maxLat:5.4,minLng:7.5,maxLng:8.3},
+  Anambra:{minLat:5.7,maxLat:6.9,minLng:6.7,maxLng:7.2},
+  Bauchi:{minLat:9.0,maxLat:11.2,minLng:9.5,maxLng:11.0},
+  Bayelsa:{minLat:4.5,maxLat:5.5,minLng:5.9,maxLng:6.8},
+  Benue:{minLat:6.3,maxLat:8.0,minLng:7.0,maxLng:10.0},
+  Borno:{minLat:10.0,maxLat:13.0,minLng:11.5,maxLng:14.0},
+  CrossRiver:{minLat:4.5,maxLat:6.5,minLng:8.0,maxLng:9.5},
+  Delta:{minLat:5.0,maxLat:6.5,minLng:5.5,maxLng:6.5},
+  Ebonyi:{minLat:5.5,maxLat:6.5,minLng:7.0,maxLng:8.0},
+  Edo:{minLat:5.5,maxLat:7.0,minLng:5.5,maxLng:6.8},
+  Ekiti:{minLat:7.4,maxLat:8.0,minLng:4.9,maxLng:5.5},
+  Enugu:{minLat:5.9,maxLat:7.0,minLng:6.5,maxLng:7.8},
+  FCT:{minLat:8.8,maxLat:9.1,minLng:7.2,maxLng:7.6},
+  Gombe:{minLat:9.8,maxLat:11.0,minLng:10.0,maxLng:11.5},
+  Imo:{minLat:4.8,maxLat:6.1,minLng:6.8,maxLng:7.5},
+  Kano:{minLat:11.5,maxLat:13.0,minLng:7.0,maxLng:9.0},
+  Lagos:{minLat:6.3,maxLat:6.7,minLng:2.6,maxLng:3.9},
+  Nasarawa:{minLat:7.0,maxLat:9.0,minLng:7.0,maxLng:8.0},
+  Niger:{minLat:8.0,maxLat:11.0,minLng:4.0,maxLng:6.5},
+  Ogun:{minLat:6.5,maxLat:7.5,minLng:3.0,maxLng:4.0},
+  Ondo:{minLat:5.5,maxLat:7.0,minLng:4.5,maxLng:6.5},
+  Osun:{minLat:7.0,maxLat:8.5,minLng:4.0,maxLng:5.5},
+  Oyo:{minLat:7.0,maxLat:8.5,minLng:3.0,maxLng:5.5},
+  Plateau:{minLat:8.5,maxLat:10.5,minLng:8.0,maxLng:10.0},
+  Rivers:{minLat:4.5,maxLat:6.5,minLng:6.5,maxLng:7.5},
+  Sokoto:{minLat:12.5,maxLat:13.9,minLng:4.0,maxLng:6.0},
+  Taraba:{minLat:6.5,maxLat:9.0,minLng:9.0,maxLng:11.0},
+  Yobe:{minLat:11.0,maxLat:13.5,minLng:10.0,maxLng:13.0},
+  Zamfara:{minLat:11.0,maxLat:13.5,minLng:5.0,maxLng:7.0}
+};
+
+// ======================================
 // Populate State + LGA dropdown
 // ======================================
 
-const citySelect = document.getElementById("city");
-const areaSelect = document.getElementById("area");
+const citySelect=document.getElementById("city");
+const areaSelect=document.getElementById("area");
 
-Object.keys(nigeriaData).forEach(state => {
-  const option = document.createElement("option");
-  option.value = state;
-  option.textContent = state;
+Object.keys(nigeriaData).forEach(state=>{
+  const option=document.createElement("option");
+  option.value=state;
+  option.textContent=state;
   citySelect.appendChild(option);
 });
 
-citySelect.addEventListener("change", () => {
-  areaSelect.innerHTML = '<option value="">--Select Area--</option>';
-  const areas = nigeriaData[citySelect.value] || [];
-  areas.forEach(area => {
-    const option = document.createElement("option");
-    option.value = area;
-    option.textContent = area;
+citySelect.addEventListener("change",()=>{
+  areaSelect.innerHTML='<option value="">--Select Area--</option>';
+  const areas=nigeriaData[citySelect.value]||[];
+  areas.forEach(area=>{
+    const option=document.createElement("option");
+    option.value=area;
+    option.textContent=area;
     areaSelect.appendChild(option);
   });
 });
 
 // ======================================
-// Browser Geolocation API
+// Browser Geolocation API: Auto-select State
 // ======================================
 
-function detectLocation() {
+function detectStateByLocation() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        console.log("User Location:", lat, lng);
+      (pos)=>{
+        const lat=pos.coords.latitude;
+        const lng=pos.coords.longitude;
+        console.log("User coordinates:",lat,lng);
 
-        // Optional: Send to backend to get nearest state/LGA for auto-fill
-        // For demo, you could auto-fill FCT if within Abuja range (simple example)
-        if (lat >= 8.85 && lat <= 9.05 && lng >= 7.4 && lng <= 7.6) {
-          citySelect.value = "FCT";
+        let detectedState=null;
+        for(const state in stateBounds){
+          const b=stateBounds[state];
+          if(lat>=b.minLat && lat<=b.maxLat && lng>=b.minLng && lng<=b.maxLng){
+            detectedState=state;
+            break;
+          }
+        }
+
+        if(detectedState){
+          citySelect.value=detectedState;
           citySelect.dispatchEvent(new Event("change"));
+          console.log("Auto-selected state:",detectedState);
         }
       },
-      (error) => {
-        console.warn("Geolocation failed:", error.message);
+      (err)=>{
+        console.warn("Geolocation failed:",err.message);
       }
     );
   } else {
-    console.warn("Geolocation not supported by browser.");
+    console.warn("Geolocation not supported.");
   }
 }
 
-// Call on page load
-window.addEventListener("load", detectLocation);
+window.addEventListener("load",detectStateByLocation);
 
 // ======================================
 // Camera + Gallery Upload
 // ======================================
 
-let selectedImages = [];
+let selectedImages=[];
 
-function openCamera() {
-  document.getElementById("cameraInput").click();
-}
+function openCamera(){document.getElementById("cameraInput").click();}
+function openGallery(){document.getElementById("galleryInput").click();}
 
-function openGallery() {
-  document.getElementById("galleryInput").click();
-}
+document.getElementById("cameraInput").addEventListener("change",handleImages);
+document.getElementById("galleryInput").addEventListener("change",handleImages);
 
-document.getElementById("cameraInput").addEventListener("change", handleImages);
-document.getElementById("galleryInput").addEventListener("change", handleImages);
-
-function handleImages(event) {
-  const files = Array.from(event.target.files);
-  files.forEach(file => {
-    if (selectedImages.length < 5) {
-      selectedImages.push(file);
-    }
-  });
-  showPreview();
-}
-
-function showPreview() {
-  const preview = document.getElementById("preview");
-  preview.innerHTML = "";
-  selectedImages.forEach(file => {
-    const img = document.createElement("img");
-    img.src = URL.createObjectURL(file);
-    preview.appendChild(img);
-  });
-}
-
-// ======================================
-// Estimate Property Value
-// ======================================
-
-async function estimate() {
-  const city = citySelect.value;
-  const area = areaSelect.value;
-  const bedrooms = document.getElementById("bedrooms").value;
-  const resultEl = document.getElementById("result");
-
-  if (!city || !area || !bedrooms) {
-    resultEl.innerText = "Please complete all fields";
-    return;
-  }
-
-  resultEl.innerText = "Estimating property value...";
-
-  try {
-    const formData = new FormData();
-    formData.append("city", city);
-    formData.append("area", area);
-    formData.append("bedrooms", bedrooms);
-    selectedImages.forEach(file => formData.append("images", file));
-
-    const response = await fetch(
-      "https://ac24cbe7-acbd-4473-90d0-1c5cc04fc244-00-1fy8wqlwog2wc.worf.replit.dev/api/estimate",
-      { method: "POST", body: formData }
-    );
-
-    if (!response.ok) throw new Error("Server error");
-
-    const data = await response.json();
-    resultEl.innerText = "Estimated Value: ₦ " + data.price;
-  } catch (error) {
-    resultEl.innerText = "Server connection failed.";
-    console.error(error);
-  }
-}
+function handleImages(event){
+  const files=Array.from(event.target.files);
+  files.forEach(file=>{
+    if(selectedImages.length

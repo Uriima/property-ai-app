@@ -11,9 +11,10 @@
 <style>
 
 body{
-font-family:Arial;
+font-family:Arial, Helvetica, sans-serif;
 background:#f5f5f5;
 margin:0;
+padding:0;
 }
 
 .container{
@@ -28,6 +29,7 @@ box-shadow:0 5px 20px rgba(0,0,0,0.1);
 
 h1{
 text-align:center;
+color:#2c3e50;
 }
 
 label{
@@ -45,7 +47,7 @@ border:1px solid #ccc;
 }
 
 button{
-margin-top:10px;
+margin-top:20px;
 width:100%;
 padding:12px;
 background:#27ae60;
@@ -56,26 +58,22 @@ font-size:16px;
 cursor:pointer;
 }
 
-.upload-buttons button{
-background:#3498db;
-}
-
-#preview img{
-width:70px;
-margin:5px;
-border-radius:5px;
+button:hover{
+background:#1e874b;
 }
 
 #result{
 margin-top:20px;
 font-size:18px;
 font-weight:bold;
+color:#2c3e50;
 text-align:center;
 }
 
 </style>
 
 </head>
+
 
 <body>
 
@@ -96,36 +94,19 @@ text-align:center;
 <label>Bedrooms</label>
 <input id="bedrooms" type="number" placeholder="e.g 3">
 
-<label>Property Photos (Max 5)</label>
+<label>Upload Property Photos (Max 5)</label>
 
-<div class="upload-buttons">
-
-<button onclick="openCamera()">📷 Take Photo</button>
-
-<button onclick="openGallery()">🖼 Upload from Gallery</button>
-
-</div>
-
-<input
+<input 
 type="file"
-id="cameraInput"
+id="images"
 accept="image/*"
 capture="environment"
-style="display:none"
 multiple
 >
 
-<input
-type="file"
-id="galleryInput"
-accept="image/*"
-style="display:none"
-multiple
->
-
-<div id="preview"></div>
-
-<button onclick="estimate()">Estimate Property Value</button>
+<button onclick="estimate()">
+Estimate Property Value
+</button>
 
 <div id="result"></div>
 

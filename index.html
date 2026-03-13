@@ -2,51 +2,61 @@
 <html lang="en">
 
 <head>
-<meta charset="UTF-8">
-<title>AI Property Value Estimator</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Property Value Estimator</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="app.js" defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 10px;
+      text-align: center;
+    }
 
-<link rel="manifest" href="manifest.json">
+    h2 {
+      margin-bottom: 20px;
+    }
 
-<script src="app.js" defer></script>
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 16px;
+    }
 
-<style>
+    #image-input {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
-body{
-font-family: Arial;
-max-width: 400px;
-margin: 40px auto;
-text-align: center;
-}
-
-input, button{
-width:100%;
-padding:10px;
-margin:10px 0;
-font-size:16px;
-}
-
-#result{
-margin-top:20px;
-font-weight:bold;
-}
-
-</style>
-
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+  </style>
 </head>
 
 <body>
 
-<h2>AI Property Value Estimator</h2>
+  <h2>AI Property Value Estimator</h2>
 
-<input id="city" placeholder="City">
+  <input id="city" placeholder="City" type="text">
+  <input id="area" placeholder="Area" type="text">
+  <input id="bedrooms" placeholder="Bedrooms" type="number">
 
-<input id="area" placeholder="Area">
+  <div id="image-input">
+    <label>Select up to 5 photos of the building:</label>
+    <input type="file" id="images" accept="image/*" capture="environment" multiple>
+  </div>
 
-<input id="bedrooms" placeholder="Bedrooms">
+  <button onclick="estimate()">Estimate Value</button>
 
-<button onclick="estimate()">Estimate Value</button>
-
-<p id="result"></p>
+  <p id="result"></p>
 
 </body>
 

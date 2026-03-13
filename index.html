@@ -1,89 +1,139 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Property Estimator</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      padding: 0;
-      background: #f7f7f7;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    select, input, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    #result {
-      margin-top: 20px;
-      padding: 10px;
-      border-radius: 5px;
-      background: #fff;
-      border: 1px solid #ccc;
-      min-height: 40px;
-    }
-    .image-buttons {
-      display: flex;
-      gap: 10px;
-    }
-    .image-buttons button {
-      flex: 1;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Property AI Estimator</title>
+
+<!-- PWA Manifest -->
+
+<link rel="manifest" href="manifest.json">
+
+<!-- Theme Color -->
+
+<meta name="theme-color" content="#0d6efd">
+
+<!-- App Icon -->
+
+<link rel="icon" href="icons/icon-192x192.png">
+
+<!-- Optional CSS -->
+
+<link rel="stylesheet" href="style.css">
+
 </head>
+
 <body>
 
-  <h1>AI Property Estimator</h1>
+<div class="container">
 
-  <label for="city">State</label>
-  <select id="city">
-    <option value="">--Select State--</option>
-  </select>
+<h1>Property AI Estimator</h1>
 
-  <label for="area">Area / LGA</label>
-  <select id="area">
-    <option value="">--Select Area--</option>
-  </select>
+<!-- STATE SELECT -->
 
-  <label for="bedrooms">Bedrooms</label>
-  <input type="number" id="bedrooms" min="0" placeholder="Number of bedrooms">
+<div class="form-group">
+<label for="city">State:</label>
 
-  <div class="image-buttons">
-    <button type="button" id="cameraBtn">Take Photo</button>
-    <button type="button" id="galleryBtn">Upload from Gallery</button>
-  </div>
+<select id="city">
+<option value="">--Select State--</option>
+</select>
 
-  <input id="images" type="file" multiple style="display:none;" accept="image/*">
+</div>
 
-  <button type="button" onclick="estimate()">Estimate Value</button>
+<!-- LGA SELECT -->
 
-  <div id="result"></div>
+<div class="form-group">
+<label for="area">LGA:</label>
 
-  <script src="app.js"></script>
+<select id="area">
+<option value="">--Select Area--</option>
+</select>
+
+</div>
+
+<!-- BEDROOM INPUT -->
+
+<div class="form-group">
+
+<label for="bedrooms">Bedrooms:</label>
+
+<input
+type="number"
+id="bedrooms"
+min="1"
+max="10"
+placeholder="Number of bedrooms"
+
+>
+
+</div>
+
+<!-- IMAGE UPLOAD -->
+
+<div class="form-group">
+
+<label>Upload Property Photos (Maximum 5)</label> <br>
+
+<input
+type="file"
+id="images"
+accept="image/*"
+multiple
+capture="environment"
+
+>
+
+<p class="hint">
+On mobile you can use the camera or choose images from your gallery.
+</p>
+
+</div>
+
+<!-- ESTIMATE BUTTON -->
+
+<button onclick="estimate()">
+Estimate Property Value
+</button>
+
+<!-- RESULT AREA -->
+
+<div id="result" style="margin-top:20px;font-weight:bold;"></div>
+
+</div>
+
+<!-- MAIN APPLICATION SCRIPT -->
+
+<script src="app.js"></script>
+
+<!-- SERVICE WORKER -->
+
+<script>
+
+if ('serviceWorker' in navigator) {
+
+window.addEventListener('load', function () {
+
+navigator.serviceWorker.register('/service-worker.js')
+.then(function(registration) {
+
+console.log("Service Worker registered:", registration);
+
+})
+.catch(function(error) {
+
+console.log("Service Worker registration failed:", error);
+
+});
+
+});
+
+}
+
+</script>
 
 </body>
+
 </html>

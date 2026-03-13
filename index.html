@@ -1,28 +1,29 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Property AI Estimator</title>
 
-<!-- PWA Manifest -->
-
 <link rel="manifest" href="manifest.json">
-
-<!-- Theme Color -->
-
 <meta name="theme-color" content="#0d6efd">
 
-<!-- App Icon -->
-
-<link rel="icon" href="icons/icon-192x192.png">
-
-<!-- Optional CSS -->
-
 <link rel="stylesheet" href="style.css">
+
+<script>
+if ('serviceWorker' in navigator) {
+window.addEventListener('load', function() {
+navigator.serviceWorker.register('service-worker.js')
+.then(function(registration) {
+console.log('Service Worker registered', registration);
+})
+.catch(function(error) {
+console.log('Service Worker registration failed', error);
+});
+});
+}
+</script>
 
 </head>
 
@@ -32,108 +33,84 @@
 
 <h1>Property AI Estimator</h1>
 
-<!-- STATE SELECT -->
-
+<!-- STATE -->
 <div class="form-group">
-<label for="city">State:</label>
-
+<label>State</label>
 <select id="city">
-<option value="">--Select State--</option>
+<option value="">Select State</option>
 </select>
-
 </div>
 
-<!-- LGA SELECT -->
-
+<!-- LGA -->
 <div class="form-group">
-<label for="area">LGA:</label>
-
+<label>LGA</label>
 <select id="area">
-<option value="">--Select Area--</option>
+<option value="">Select LGA</option>
 </select>
-
 </div>
 
-<!-- BEDROOM INPUT -->
-
+<!-- BEDROOMS -->
 <div class="form-group">
-
-<label for="bedrooms">Bedrooms:</label>
-
-<input
-type="number"
-id="bedrooms"
-min="1"
-max="10"
-placeholder="Number of bedrooms"
-
->
-
+<label>Bedrooms</label>
+<input type="number" id="bedrooms" placeholder="Enter number of bedrooms">
 </div>
 
 <!-- IMAGE UPLOAD -->
-
 <div class="form-group">
 
-<label>Upload Property Photos (Maximum 5)</label> <br>
+<label>Property Photos (Max 5)</label>
+
+<br><br>
+
+<button type="button" onclick="openCamera()">📷 Take Photo</button>
+
+<button type="button" onclick="openGallery()">🖼 Choose From Gallery</button>
+
+<br><br>
 
 <input
 type="file"
-id="images"
+id="cameraInput"
+accept="image/*"
+capture="environment"
+multiple
+style="display:none"
+>
+
+<input
+type="file"
+id="galleryInput"
 accept="image/*"
 multiple
-capture="environment"
-
+style="display:none"
 >
 
 <p class="hint">
-On mobile you can use the camera or choose images from your gallery.
+Upload up to 5 photos of the building for better AI estimation.
 </p>
 
 </div>
 
-<!-- ESTIMATE BUTTON -->
-
-<button onclick="estimate()">
-Estimate Property Value
-</button>
-
-<!-- RESULT AREA -->
+<!-- RESULT -->
+<button onclick="estimate()">Estimate Property Value</button>
 
 <div id="result" style="margin-top:20px;font-weight:bold;"></div>
 
 </div>
 
-<!-- MAIN APPLICATION SCRIPT -->
-
 <script src="app.js"></script>
-
-<!-- SERVICE WORKER -->
 
 <script>
 
-if ('serviceWorker' in navigator) {
+function openCamera(){
+document.getElementById("cameraInput").click();
+}
 
-window.addEventListener('load', function () {
-
-navigator.serviceWorker.register('/service-worker.js')
-.then(function(registration) {
-
-console.log("Service Worker registered:", registration);
-
-})
-.catch(function(error) {
-
-console.log("Service Worker registration failed:", error);
-
-});
-
-});
-
+function openGallery(){
+document.getElementById("galleryInput").click();
 }
 
 </script>
 
 </body>
-
 </html>

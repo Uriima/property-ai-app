@@ -1,0 +1,8 @@
+{
+"name":"Property AI",
+"short_name":"PropAI",
+"start_url":"/",
+"display":"standalone",
+"background_color":"#ffffff",
+"theme_color":"#000000"
+}

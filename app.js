@@ -96,6 +96,68 @@ async function loadPricing() {
   }
 }
 
+function normalizeLocationText(value) {
+  return String(value || "").trim().replace(/\s+/g, " ");
+}
+
+function normalizeLocationKey(value) {
+  return normalizeLocationText(value).toLowerCase();
+}
+
+function findMatchingValue(values, rawValue) {
+  const normalizedRaw = normalizeLocationKey(rawValue);
+  if (!normalizedRaw) return "";
+  return values.find((value) => normalizeLocationKey(value) === normalizedRaw) || normalizeLocationText(rawValue);
+}
+
+function getPricingStates() {
+  return Object.keys(pricingConfig?.states || {});
+}
+
+function getSelectedState() {
+  return findMatchingValue([...Object.keys(nigeriaData), ...getPricingStates()], elements.state.value);
+}
+
+function getSelectedCity(stateName = getSelectedState()) {
+  const lgaValues = nigeriaData[stateName] || [];
+  const pricingCities = Object.keys(pricingConfig?.states?.[stateName]?.cities || {});
+  return findMatchingValue([...lgaValues, ...pricingCities], elements.city.value);
+}
+
+function getKnownAreaOptions(stateName = getSelectedState(), cityName = getSelectedCity(stateName)) {
+  return Object.keys(pricingConfig?.states?.[stateName]?.cities?.[cityName]?.areas || {});
+}
+
+function getSelectedKnownArea(stateName = getSelectedState(), cityName = getSelectedCity(stateName)) {
+  return findMatchingValue(getKnownAreaOptions(stateName, cityName), elements.area.value);
+}
+
+function getEffectiveArea() {
+  const manualArea = normalizeLocationText(elements.manualArea.value);
+  if (manualArea) return manualArea;
+  return getSelectedKnownArea();
+}
+
+function getLocationSelection() {
+  const stateName = getSelectedState();
+  const cityName = getSelectedCity(stateName);
+  const knownArea = getSelectedKnownArea(stateName, cityName);
+  const manualArea = normalizeLocationText(elements.manualArea.value);
+
+  return {
+    stateName,
+    cityName,
+    knownArea,
+    manualArea,
+    effectiveArea: manualArea || knownArea
+  };
+}
+
+function isLocationStepValid() {
+  const location = getLocationSelection();
+  return Boolean(location.stateName && location.cityName && location.effectiveArea);
+}
+
 function attachEvents() {
   elements.startEstimate.addEventListener("click", () => showEstimator());
   elements.backToLanding.addEventListener("click", () => showLanding());
@@ -103,8 +165,14 @@ function attachEvents() {
   elements.nextStep.addEventListener("click", nextStep);
   elements.state.addEventListener("change", updateCities);
   elements.city.addEventListener("change", updateAreas);
-  elements.area.addEventListener("change", updateLocationMessage);
-  elements.manualArea.addEventListener("input", updateLocationMessage);
+  elements.area.addEventListener("change", () => {
+    updateLocationMessage();
+    updateStep();
+  });
+  elements.manualArea.addEventListener("input", () => {
+    updateLocationMessage();
+    updateStep();
+  });
   elements.takePhotoBtn.addEventListener("click", () => elements.cameraInput.click());
   elements.galleryBtn.addEventListener("click", () => elements.galleryInput.click());
   elements.cameraInput.addEventListener("change", (event) => handleFiles(event.target.files));
@@ -128,7 +196,12 @@ function attachEvents() {
     elements.uploadDropZone.classList.remove("dragging");
     handleFiles(event.dataTransfer.files);
   });
-  [elements.state, elements.city, elements.propertyType, elements.bedrooms, elements.condition, elements.finishing].forEach((field) => {
+  [
+    elements.propertyType,
+    elements.bedrooms,
+    elements.condition,
+    elements.finishing
+  ].forEach((field) => {
     field.addEventListener("input", updateStep);
     field.addEventListener("change", updateStep);
   });
@@ -158,22 +231,22 @@ function populateSelect(select, values, placeholder, optional = false) {
 }
 
 function updateCities() {
-  const selectedState = elements.state.value;
+  const selectedState = getSelectedState();
   populateSelect(elements.city, nigeriaData[selectedState] || [], selectedState === "Other" ? "Manual entry" : "Select city / LGA");
   if (selectedState === "Other") elements.city.value = "Manual entry";
   updateAreas();
+  updateStep();
 }
 
 function updateAreas() {
-  const statePricing = pricingConfig?.states?.[elements.state.value];
-  const cityPricing = statePricing?.cities?.[elements.city.value];
-  const areas = cityPricing?.areas ? Object.keys(cityPricing.areas) : [];
+  const areas = getKnownAreaOptions();
   populateSelect(elements.area, areas, areas.length ? "Select known area" : "No saved areas yet");
   updateLocationMessage();
+  updateStep();
 }
 
 function updateLocationMessage() {
-  const area = getAreaName();
+  const area = getEffectiveArea();
   elements.locationMessage.textContent = area
     ? `Using ${area} for the valuation assumptions.`
     : "Tip: choose a known area or type the neighbourhood manually.";
@@ -201,11 +274,11 @@ function updateStep() {
   elements.progressBar.style.width = `${progress}%`;
   elements.prevStep.disabled = currentStep === 0;
   elements.nextStep.textContent = currentStep === steps.length - 1 ? "Estimate Property Value" : "Continue";
-  elements.nextStep.disabled = !canContinue(currentStep);
+  elements.nextStep.disabled = currentStep === 2 && !canContinue(currentStep);
 }
 
 function canContinue(stepIndex) {
-  if (stepIndex === 1) return Boolean(elements.state.value && elements.city.value && getAreaName());
+  if (stepIndex === 1) return isLocationStepValid();
   if (stepIndex === 2) return Boolean(elements.propertyType.value && elements.bedrooms.value !== "" && elements.condition.value && elements.finishing.value);
   return true;
 }
@@ -232,7 +305,9 @@ function previousStep() {
 }
 
 function showValidationMessage() {
-  if (currentStep === 1) elements.locationMessage.textContent = "Please select a state, city/LGA, and area or type a manual area.";
+  if (currentStep === 1) {
+    elements.locationMessage.textContent = "Please select a state, city/LGA, and either choose a known area or enter the area manually.";
+  }
 }
 
 function handleFiles(fileList) {
@@ -282,7 +357,7 @@ function removePhoto(photoId) {
 }
 
 function getAreaName() {
-  return elements.manualArea.value.trim() || elements.area.value || (elements.state.value === "Other" ? "Manual area" : "");
+  return getEffectiveArea();
 }
 
 function getNumber(element, fallback = 0) {
@@ -307,9 +382,7 @@ function runEstimate() {
 }
 
 function calculateEstimate() {
-  const stateName = elements.state.value;
-  const cityName = elements.city.value;
-  const areaName = getAreaName();
+  const { stateName, cityName, effectiveArea: areaName } = getLocationSelection();
   const bedrooms = getNumber(elements.bedrooms);
   const bathrooms = getNumber(elements.bathrooms, bedrooms || 1);
   const toilets = getNumber(elements.toilets, Math.max(bathrooms, bedrooms));

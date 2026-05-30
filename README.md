@@ -52,6 +52,14 @@ Then open:
 http://localhost:4173
 ```
 
+## Run the location-flow check
+
+A lightweight Node test verifies that the Location step continues without any Replit/backend API call and that the final estimate uses local pricing data:
+
+```bash
+node tests/location-flow.test.js
+```
+
 ## Deploy on Vercel
 
 Vercel can serve this repository as a static web app. The included `vercel.json` routes `/` to `index.html`.

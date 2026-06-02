@@ -1,116 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Property AI Estimator</title>
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0d6efd">
-
-<link rel="stylesheet" href="style.css">
-
-<script>
-if ('serviceWorker' in navigator) {
-window.addEventListener('load', function() {
-navigator.serviceWorker.register('service-worker.js')
-.then(function(registration) {
-console.log('Service Worker registered', registration);
-})
-.catch(function(error) {
-console.log('Service Worker registration failed', error);
-});
-});
-}
-</script>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Photo-first AI-assisted property value estimator for Nigerian properties.">
+  <title>AI Property Value Estimator</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f3d2e">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+  <main class="app-shell">
+    <section id="landing" class="landing-screen" aria-labelledby="hero-title">
+      <div class="hero-card reveal-card">
+        <div class="eyebrow">Photo-first Nigerian property valuation</div>
+        <h1 id="hero-title">AI Property Value Estimator</h1>
+        <p class="hero-copy">Upload property photos, add a few details, and receive an instant AI-assisted value estimate for Nigerian properties.</p>
+        <div class="hero-preview" aria-hidden="true">
+          <div class="preview-photo large"><span>📷</span></div>
+          <div class="preview-stack">
+            <div class="mini-metric"><strong>₦52M</strong><span>Mid estimate</span></div>
+            <div class="mini-metric soft"><strong>78%</strong><span>Confidence</span></div>
+          </div>
+        </div>
+        <button id="startEstimate" class="btn btn-primary btn-large">Start Property Estimate</button>
+        <p class="trust-note">Built for Lagos, Abuja, Port Harcourt and other Nigerian locations.</p>
+      </div>
+    </section>
 
-<div class="container">
+    <section id="estimator" class="estimator-screen hidden" aria-labelledby="stepTitle">
+      <header class="app-header">
+        <button id="backToLanding" class="ghost-link" type="button">← Home</button>
+        <div>
+          <p class="eyebrow">AI-assisted estimate</p>
+          <h2 id="stepTitle">Property Photos</h2>
+        </div>
+      </header>
 
-<h1>Property AI Estimator</h1>
+      <div class="progress-wrap" aria-label="Estimate progress">
+        <div class="progress-meta"><span id="stepCounter">Step 1 of 5</span><span id="progressPercent">20%</span></div>
+        <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+        <ol id="stepDots" class="step-dots"></ol>
+      </div>
 
-<!-- STATE -->
-<div class="form-group">
-<label>State</label>
-<select id="city">
-<option value="">Select State</option>
-</select>
-</div>
+      <form id="estimateForm" novalidate>
+        <section class="step-panel active" data-step="0" aria-labelledby="photosTitle">
+          <div class="panel-heading">
+            <span class="step-icon">📸</span>
+            <div><h3 id="photosTitle">Start with property photos</h3><p>Photos are optional, but uploaded images are checked on your device and must show clear building, room, kitchen, bathroom, or access-road evidence.</p></div>
+          </div>
+          <div id="uploadDropZone" class="upload-card" role="button" tabindex="0" aria-label="Choose property photos">
+            <div class="upload-icon">＋</div>
+            <h4>Add up to 5 property photos</h4>
+            <p>Exterior, living spaces, kitchen, bathrooms, and road access are helpful.</p>
+            <div class="upload-actions">
+              <button id="takePhotoBtn" class="btn btn-secondary" type="button">📷 Take Photo</button>
+              <button id="galleryBtn" class="btn btn-secondary" type="button">🖼 Choose From Gallery</button>
+            </div>
+            <small>JPG, PNG, WEBP or GIF. Max 6MB per image.</small>
+          </div>
+          <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
+          <input id="galleryInput" type="file" accept="image/*" multiple hidden>
+          <div id="photoError" class="form-message" role="alert"></div>
+          <div id="photoScreeningStatus" class="screening-status" role="status" aria-live="polite"></div>
+          <div id="photoGrid" class="photo-grid" aria-live="polite"></div>
+        </section>
 
-<!-- LGA -->
-<div class="form-group">
-<label>LGA</label>
-<select id="area">
-<option value="">Select LGA</option>
-</select>
-</div>
+        <section class="step-panel" data-step="1" aria-labelledby="locationTitle">
+          <div class="panel-heading">
+            <span class="step-icon">📍</span>
+            <div><h3 id="locationTitle">Where is the property?</h3><p>Select a known location or enter the area manually.</p></div>
+          </div>
+          <div class="field-grid">
+            <label class="field">State<select id="state" required></select></label>
+            <label class="field">City / LGA<select id="city" required></select></label>
+            <label class="field">Known area / neighbourhood<select id="area"></select></label>
+            <label class="field">Manual area entry<input id="manualArea" type="text" placeholder="e.g. Osapa London, Apo, Rumuibekwe"></label>
+          </div>
+          <p id="locationMessage" class="form-message"></p>
+        </section>
 
-<!-- BEDROOMS -->
-<div class="form-group">
-<label>Bedrooms</label>
-<input type="number" id="bedrooms" placeholder="Enter number of bedrooms">
-</div>
+        <section class="step-panel" data-step="2" aria-labelledby="basicsTitle">
+          <div class="panel-heading">
+            <span class="step-icon">🏠</span>
+            <div><h3 id="basicsTitle">Add property basics</h3><p>Only the key details needed for a fast valuation range.</p></div>
+          </div>
+          <div class="field-grid two-col">
+            <label class="field">Property type<select id="propertyType" required></select></label>
+            <label class="field">Bedrooms<input id="bedrooms" type="number" min="0" max="12" inputmode="numeric" placeholder="4" required></label>
+            <label class="field">Bathrooms<input id="bathrooms" type="number" min="0" max="12" inputmode="numeric" placeholder="4"></label>
+            <label class="field">Toilets<input id="toilets" type="number" min="0" max="14" inputmode="numeric" placeholder="5"></label>
+            <label class="field">Building condition<select id="condition" required></select></label>
+            <label class="field">Finishing quality<select id="finishing" required></select></label>
+          </div>
+        </section>
 
-<!-- IMAGE UPLOAD -->
-<div class="form-group">
+        <section class="step-panel" data-step="3" aria-labelledby="factorsTitle">
+          <div class="panel-heading">
+            <span class="step-icon">✨</span>
+            <div><h3 id="factorsTitle">Optional value factors</h3><p>Add extra details if you know them. You can skip this step.</p></div>
+          </div>
+          <details class="optional-box" open>
+            <summary>Show optional property factors</summary>
+            <div class="field-grid two-col optional-fields">
+              <label class="field">Land size<input id="landSize" type="number" min="0" inputmode="decimal" placeholder="e.g. 600"><span>Square metres, if known.</span></label>
+              <label class="field">Road access<select id="roadAccess"></select></label>
+              <label class="field">Power availability<select id="power"></select></label>
+              <label class="field">Water availability<select id="water"></select></label>
+              <label class="field">Estate / security status<select id="security"></select></label>
+              <label class="field">Age of building<input id="buildingAge" type="number" min="0" max="100" inputmode="numeric" placeholder="e.g. 5"><span>Years old, approximate.</span></label>
+            </div>
+          </details>
+        </section>
 
-<label>Property Photos (Max 5)</label>
+        <section class="step-panel" data-step="4" aria-labelledby="resultTitle">
+          <div id="resultLoading" class="loading-card hidden"><div class="spinner"></div><strong>Analysing property details...</strong><span>Creating your AI-assisted estimate range.</span></div>
+          <div id="resultCard" class="result-card hidden" aria-live="polite"></div>
+          <div id="readyToEstimate" class="ready-card">
+            <span class="step-icon">🤖</span>
+            <h3 id="resultTitle">Ready for your estimate</h3>
+            <p>Review the details and generate an explainable Nigerian property value range.</p>
+          </div>
+        </section>
 
-<br><br>
+        <div class="navigation-bar">
+          <button id="prevStep" class="btn btn-light" type="button">Back</button>
+          <button id="nextStep" class="btn btn-primary" type="button">Continue</button>
+        </div>
+      </form>
+    </section>
+  </main>
 
-<button type="button" onclick="openCamera()">📷 Take Photo</button>
+  <div id="subscriptionModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="paywallTitle">
+    <section class="paywall-card reveal-card">
+      <button id="closeSubscription" class="modal-close" type="button" aria-label="Close subscription prompt">×</button>
+      <span class="badge paywall-badge">Starter plan</span>
+      <h2 id="paywallTitle">Unlock unlimited property valuations</h2>
+      <p class="paywall-copy">Subscribe to generate more AI-assisted property estimates, download detailed reports, and access premium valuation insights.</p>
+      <div class="plan-price"><strong>₦2,000</strong><span>/month</span></div>
+      <ul class="plan-features">
+        <li>Run more property valuations</li>
+        <li>Download valuation reports</li>
+        <li>Access detailed value drivers</li>
+        <li>Save time before inspection or negotiation</li>
+        <li>Built for Nigerian property decisions</li>
+      </ul>
+      <p class="plan-note">Formal valuation or inspection may require professional review.</p>
+      <div id="checkoutNotice" class="checkout-notice hidden" role="status">Subscription checkout is being prepared. Please contact Tafid Real Estate to activate access.</div>
+      <div class="paywall-actions">
+        <button id="startStarterPlan" class="btn btn-primary" type="button">Subscribe from ₦2,000/month</button>
+        <a class="btn btn-secondary" href="https://realestate.tafid.org/contact/" target="_blank" rel="noopener">Contact Tafid Real Estate</a>
+      </div>
+    </section>
+  </div>
 
-<button type="button" onclick="openGallery()">🖼 Choose From Gallery</button>
-
-<br><br>
-
-<input
-type="file"
-id="cameraInput"
-accept="image/*"
-capture="environment"
-multiple
-style="display:none"
->
-
-<input
-type="file"
-id="galleryInput"
-accept="image/*"
-multiple
-style="display:none"
->
-
-<p class="hint">
-Upload up to 5 photos of the building for better AI estimation.
-</p>
-
-</div>
-
-<!-- RESULT -->
-<button onclick="estimate()">Estimate Property Value</button>
-
-<div id="result" style="margin-top:20px;font-weight:bold;"></div>
-
-</div>
-
-<script src="app.js"></script>
-
-<script>
-
-function openCamera(){
-document.getElementById("cameraInput").click();
-}
-
-function openGallery(){
-document.getElementById("galleryInput").click();
-}
-
-</script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

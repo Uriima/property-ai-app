@@ -1,119 +1,753 @@
-// ============================
-// Nigeria States + LGAs (Clean Official List)
-// ============================
+const MAX_PHOTOS = 5;
+const MAX_PHOTO_SIZE = 6 * 1024 * 1024;
+const CONTACT_URL = "https://realestate.tafid.org/contact/";
+const FREE_TEST_STORAGE_KEY = "property_ai_free_test_used";
+const PAID_USER_STORAGE_KEY = "property_ai_paid_user";
+const PROPERTY_PHOTO_MIN_CONFIDENCE = 0.12;
+const PROPERTY_PHOTO_KEYWORDS = ["house", "home", "building", "palace", "estate", "apartment", "villa", "mansion", "terrace", "patio", "porch", "door", "window", "roof", "room", "studio couch", "dining table", "entertainment center", "wardrobe", "bookcase", "shower curtain", "bathtub", "washbasin", "kitchen", "refrigerator", "stove", "oven", "dishwasher", "toilet seat", "fountain", "street", "driveway", "greenhouse", "barn", "boathouse", "church", "monastery", "library", "restaurant", "lakeside", "boathouse"];
+const UNRELATED_PHOTO_KEYWORDS = ["receipt", "invoice", "menu", "envelope", "packet", "carton", "binder", "book jacket", "paper", "web site", "website", "screen", "monitor", "notebook", "shoe", "sandal", "slipper", "sneaker", "boot", "loafer", "running shoe", "clog", "handbag", "backpack", "wallet", "watch", "cellular telephone", "mobile phone", "laptop", "keyboard", "mouse", "bottle", "plate", "cup", "banana", "orange", "pizza", "dog", "cat", "bird", "car", "motorcycle", "bicycle", "person", "jersey", "sock", "sunglass", "lipstick"];
+const DISCLAIMER = "This is an AI-assisted property estimate based on the information provided. It is not a formal valuation report and should be verified by a qualified property professional.";
 
 const nigeriaData = {
-  "Abia":["Aba North","Aba South","Arochukwu","Bende","Ikwuano","Isiala Ngwa North","Isiala Ngwa South","Isuikwuato","Obi Ngwa","Ohafia","Osisioma","Ugwunagbo","Ukwa East","Ukwa West","Umuahia North","Umuahia South","Umu Nneochi"],
-  "Adamawa":["Demsa","Fufore","Ganye","Girei","Gombi","Guyuk","Hong","Jada","Lamurde","Madagali","Maiha","Mayo Belwa","Michika","Mubi North","Mubi South","Numan","Shelleng","Song","Toungo","Yola North","Yola South"],
-  "Akwa Ibom":["Abak","Eastern Obolo","Eket","Esit Eket","Essien Udim","Etim Ekpo","Etinan","Ibeno","Ibesikpo Asutan","Ibiono Ibom","Ika","Ikono","Ikot Abasi","Ikot Ekpene","Ini","Itu","Mbo","Mkpat Enin","Nsit Atai","Nsit Ibom","Nsit Ubium","Obot Akara","Okobo","Onna","Oron","Oruk Anam","Udung Uko","Ukanafun","Uruan","Urue Offong Oruko","Uyo"],
-  "Anambra":["Aguata","Anambra East","Anambra West","Anaocha","Awka North","Awka South","Ayamelum","Dunukofia","Ekwusigo","Idemili North","Idemili South","Ihiala","Njikoka","Nnewi North","Nnewi South","Ogbaru","Onitsha North","Onitsha South","Orumba North","Orumba South","Oyi"],
-  "Bauchi":["Alkaleri","Bauchi","Bogoro","Damban","Darazo","Dass","Ganjuwa","Giade","Itas Gadau","Jamaare","Katagum","Kirfi","Misau","Ningi","Shira","Tafawa Balewa","Toro","Warji","Zaki"],
-  "Bayelsa":["Brass","Ekeremor","Kolokuma Opokuma","Nembe","Ogbia","Sagbama","Southern Ijaw","Yenagoa"],
-  "Benue":["Agatu","Apa","Buruku","Gboko","Guma","Gwer East","Gwer West","Katsina Ala","Konshisha","Kwande","Logo","Makurdi","Obi","Ogbadibo","Ohimini","Oju","Okpokwu","Otukpo","Tarka","Ukum","Ushongo","Vandeikya"],
-  "Borno":["Abadam","Askira Uba","Bama","Bayo","Biu","Chibok","Damboa","Gubio","Guzamala","Gwoza","Hawul","Jere","Kaga","Kala Balge","Konduga","Kukawa","Kwaya Kusar","Mafa","Magumeri","Maiduguri","Marte","Mobbar","Monguno","Ngala","Nganzai"],
-  "Cross River":["Akamkpa","Akpabuyo","Bakassi","Bekwarra","Biase","Boki","Calabar Municipal","Calabar South","Etung","Ikom","Obanliku","Obubra","Obudu","Odukpani","Ogoja","Yala"],
-  "Delta":["Aniocha North","Aniocha South","Bomadi","Burutu","Ethiope East","Ethiope West","Ika North East","Ika South","Isoko North","Isoko South","Ndokwa East","Ndokwa West","Okpe","Oshimili North","Oshimili South","Patani","Sapele","Udu","Ughelli North","Ughelli South","Ukwuani","Uvwie","Warri North","Warri South","Warri South West"],
-  "Ebonyi":["Abakaliki","Afikpo North","Afikpo South","Ebonyi","Ezza North","Ezza South","Ikwo","Ishielu","Ivo","Izzi","Ohaozara","Ohaukwu","Onicha"],
-  "Edo":["Akoko Edo","Egor","Esan Central","Esan North East","Esan South East","Esan West","Etsako Central","Etsako East","Etsako West","Igueben","Ikpoba Okha","Oredo","Orhionmwon","Ovia North East","Ovia South West","Uhunmwonde"],
-  "Ekiti":["Ado Ekiti","Efon","Ekiti East","Ekiti South West","Ekiti West","Emure","Gbonyin","Ido Osi","Ijero","Ikere","Ikole","Ilejemeje","Irepodun Ifelodun","Ise Orun","Moba","Oye"],
-  "Enugu":["Aninri","Awgu","Enugu East","Enugu North","Enugu South","Ezeagu","Igbo Etiti","Igbo Eze North","Igbo Eze South","Isi Uzo","Nkanu East","Nkanu West","Nsukka","Oji River","Udenu","Udi","Uzo Uwani"],
-  "FCT":["Abaji","Bwari","Gwagwalada","Kuje","Kwali","Municipal Area Council"],
-  "Gombe":["Akko","Balanga","Billiri","Dukku","Funakaye","Gombe","Kaltungo","Kwami","Shongom","Yamaltu Deba"],
-  "Imo":["Aboh Mbaise","Ahiazu Mbaise","Ehime Mbano","Ezinihitte","Ideato North","Ideato South","Ihitte Uboma","Ikeduru","Isiala Mbano","Isu","Mbaitoli","Ngor Okpala","Njaba","Nkwerre","Nwangele","Obowo","Oguta","Ohaji Egbema","Okigwe","Onuimo","Orlu","Orsu","Oru East","Oru West","Owerri Municipal","Owerri North","Owerri West"],
-  "Kano":["Ajingi","Albasu","Bagwai","Bebeji","Bichi","Bunkure","Dala","Dambatta","Dawakin Kudu","Dawakin Tofa","Doguwa","Fagge","Garko","Garun Mallam","Gaya","Gezawa","Gwale","Gwarzo","Kabo","Kano Municipal","Karu","Kiru","Kumbotso","Kunchi","Kura","Madobi","Makoda","Minjibir","Nasarawa","Rano","Rimin Gado","Rogo","Shanono","Sumaila","Takai","Tarauni","Tofa","Tsanyawa","Tudun Wada","Ungogo","Warawa","Wudil"],
-  "Lagos":["Agege","Ajeromi Ifelodun","Alimosho","Amuwo Odofin","Apapa","Badagry","Epe","Eti Osa","Ibeju Lekki","Ifako Ijaiye","Ikeja","Ikorodu","Kosofe","Lagos Island","Lagos Mainland","Mushin","Ojo","Oshodi Isolo","Shomolu","Surulere"],
-  "Nasarawa":["Akwanga","Awe","Doma","Karu","Keana","Keffi","Kokona","Lafia","Nasarawa","Nasarawa Egon","Obi","Toto","Wamba"],
-  "Niger":["Agaie","Agwara","Bida","Borgu","Bosso","Chanchaga","Edati","Gbako","Gurara","Katcha","Kontagora","Lapai","Lavun","Magama","Mariga","Mashegu","Mokwa","Munya","Paikoro","Rafi","Rijau","Shiroro","Suleja","Tafa","Wushishi"],
-  "Ogun":["Abeokuta North","Abeokuta South","Ado Odo Ota","Egbado North","Egbado South","Ewekoro","Ifo","Ijebu East","Ijebu North","Ijebu North East","Ijebu Ode","Ikenne","Imeko Afon","Ipokia","Obafemi Owode","Odeda","Odogbolu","Ogun Waterside","Remo North","Sagamu"],
-  "Ondo":["Akoko North East","Akoko North West","Akoko South East","Akoko South West","Akure North","Akure South","Ese Odo","Idanre","Ifedore","Ilaje","Ile Oluji Okeigbo","Irele","Odigbo","Okitipupa","Ondo East","Ondo West","Ose","Owo"],
-  "Osun":["Atakunmosa East","Atakunmosa West","Boluwaduro","Boripe","Ede North","Ede South","Egbedore","Ejigbo","Ife Central","Ife East","Ife North","Ife South","Ifedayo","Ifelodun","Ila","Ilesa East","Ilesa West","Irepodun","Irewole","Isokan","Iwo","Obokun","Odo Otin","Ola Oluwa","Olorunda","Oriade","Orolu","Osogbo"],
-  "Oyo":["Afijio","Akinyele","Atiba","Atisbo","Egbeda","Ibadan North","Ibadan North East","Ibadan North West","Ibadan South East","Ibadan South West","Ibarapa Central","Ibarapa East","Ibarapa North","Ido","Irepo","Iseyin","Itesiwaju","Iwajowa","Kajola","Lagelu","Ogbomosho North","Ogbomosho South","Ogo Oluwa","Olorunsogo","Oluyole","Ona Ara","Orelope","Ori Ire","Oyo East","Oyo West","Saki East","Saki West","Surulere"],
-  "Plateau":["Barkin Ladi","Bassa","Bokkos","Jos East","Jos North","Jos South","Kanam","Kanke","Langtang North","Langtang South","Mangu","Mikang","Qua An Pan","Riyom","Shendam","Wase"],
-  "Rivers":["Abua Odual","Ahoada East","Ahoada West","Akuku Toru","Andoni","Asari Toru","Bonny","Degema","Eleme","Emohua","Etche","Gokana","Ikwerre","Khana","Obio Akpor","Ogba Egbema Ndoni","Ogu Bolo","Okrika","Omuma","Opobo Nkoro","Oyigbo","Port Harcourt","Tai"],
-  "Sokoto":["Binji","Bodinga","Dange Shuni","Gada","Goronyo","Gudu","Gwadabawa","Illela","Isa","Kebbe","Kware","Rabah","Sabon Birni","Shagari","Silame","Sokoto North","Sokoto South","Tambuwal","Tangaza","Tureta","Wamako","Wurno","Yabo"],
-  "Taraba":["Ardo Kola","Bali","Donga","Gashaka","Gassol","Ibi","Jalingo","Karim Lamido","Kumi","Lau","Sardauna","Takum","Ussa","Wukari","Yorro","Zing"],
-  "Yobe":["Bade","Bursari","Damaturu","Fika","Fune","Geidam","Gujba","Gulani","Jakusko","Karasuwa","Machina","Nangere","Nguru","Tarmuwa","Yunusari","Yusufari"],
-  "Zamfara":["Anka","Bakura","Birnin Magaji","Bukkuyum","Gummi","Gusau","Kaura Namoda","Maradun","Maru","Shinkafi","Talata Mafara","Tsafe","Zurmi"]
+  "Lagos": ["Agege", "Ajeromi Ifelodun", "Alimosho", "Amuwo Odofin", "Apapa", "Badagry", "Epe", "Eti Osa", "Ibeju Lekki", "Ifako Ijaiye", "Ikeja", "Ikorodu", "Kosofe", "Lagos Island", "Lagos Mainland", "Mushin", "Ojo", "Oshodi Isolo", "Shomolu", "Surulere"],
+  "FCT": ["Abaji", "Bwari", "Gwagwalada", "Kuje", "Kwali", "Municipal Area Council"],
+  "Rivers": ["Abua Odual", "Ahoada East", "Ahoada West", "Akuku Toru", "Andoni", "Asari Toru", "Bonny", "Degema", "Eleme", "Emohua", "Etche", "Gokana", "Ikwerre", "Khana", "Obio Akpor", "Ogba Egbema Ndoni", "Ogu Bolo", "Okrika", "Omuma", "Opobo Nkoro", "Oyigbo", "Port Harcourt", "Tai"],
+  "Other": ["Manual entry"]
 };
 
-// ============================
-// Dropdown Elements
-// ============================
-const citySelect = document.getElementById("city");
-const areaSelect = document.getElementById("area");
+const propertyTypes = ["Detached duplex", "Semi-detached duplex", "Terrace duplex", "Bungalow", "Block of flats", "Apartment", "Land only"];
+const conditionOptions = ["New", "Fairly used", "Needs renovation", "Uncompleted"];
+const finishingOptions = ["Basic", "Standard", "Premium", "Luxury"];
+const roadOptions = ["Tarred road", "Untarred road", "Estate road", "Poor access"];
+const powerOptions = ["Public power only", "Public power plus inverter/solar", "Estate/generator support", "Poor power supply"];
+const waterOptions = ["Reliable borehole/public water", "Private borehole", "Public water only", "Unreliable water"];
+const securityOptions = ["Gated estate with security", "Street security", "Basic neighbourhood security", "No clear security"];
 
-// Populate States
-Object.keys(nigeriaData).forEach(state => {
-  const opt = document.createElement("option");
-  opt.value = state;
-  opt.textContent = state;
-  citySelect.appendChild(opt);
-});
+const steps = ["Property Photos", "Location", "Property Basics", "Value Factors", "Result"];
+let currentStep = 0;
+let selectedPhotos = [];
+let pricingConfig = null;
+let lastResult = null;
+let photoScreeningModelPromise = null;
+let photoScreeningInProgress = false;
+let rejectedPropertyPhotoAttempt = false;
 
-// Populate LGAs on State Change
-citySelect.addEventListener("change", () => {
-  areaSelect.innerHTML = '<option value="">--Select Area--</option>';
-  const areas = nigeriaData[citySelect.value] || [];
-  areas.forEach(area => {
-    const opt = document.createElement("option");
-    opt.value = area;
-    opt.textContent = area;
-    areaSelect.appendChild(opt);
-  });
-});
+const $ = (id) => document.getElementById(id);
 
-// ============================
-// Image Input Buttons for Camera & Gallery
-// ============================
-const imagesInput = document.getElementById("images");
+const elements = {
+  landing: $("landing"),
+  estimator: $("estimator"),
+  startEstimate: $("startEstimate"),
+  backToLanding: $("backToLanding"),
+  stepTitle: $("stepTitle"),
+  stepCounter: $("stepCounter"),
+  progressPercent: $("progressPercent"),
+  progressBar: $("progressBar"),
+  stepDots: $("stepDots"),
+  panels: [...document.querySelectorAll(".step-panel")],
+  prevStep: $("prevStep"),
+  nextStep: $("nextStep"),
+  uploadDropZone: $("uploadDropZone"),
+  takePhotoBtn: $("takePhotoBtn"),
+  galleryBtn: $("galleryBtn"),
+  cameraInput: $("cameraInput"),
+  galleryInput: $("galleryInput"),
+  photoGrid: $("photoGrid"),
+  photoError: $("photoError"),
+  photoScreeningStatus: $("photoScreeningStatus"),
+  state: $("state"),
+  city: $("city"),
+  area: $("area"),
+  manualArea: $("manualArea"),
+  locationMessage: $("locationMessage"),
+  propertyType: $("propertyType"),
+  bedrooms: $("bedrooms"),
+  bathrooms: $("bathrooms"),
+  toilets: $("toilets"),
+  condition: $("condition"),
+  finishing: $("finishing"),
+  landSize: $("landSize"),
+  roadAccess: $("roadAccess"),
+  power: $("power"),
+  water: $("water"),
+  security: $("security"),
+  buildingAge: $("buildingAge"),
+  resultLoading: $("resultLoading"),
+  resultCard: $("resultCard"),
+  readyToEstimate: $("readyToEstimate"),
+  subscriptionModal: $("subscriptionModal"),
+  closeSubscription: $("closeSubscription"),
+  startStarterPlan: $("startStarterPlan"),
+  checkoutNotice: $("checkoutNotice")
+};
 
-// Optional: You can add separate buttons in HTML and trigger this:
-function openCamera() {
-  imagesInput.setAttribute("capture", "environment");
-  imagesInput.click();
+function init() {
+  buildStepDots();
+  populateSelect(elements.state, Object.keys(nigeriaData), "Select state");
+  populateSelect(elements.propertyType, propertyTypes, "Select property type");
+  populateSelect(elements.condition, conditionOptions, "Select condition");
+  populateSelect(elements.finishing, finishingOptions, "Select finishing quality");
+  populateSelect(elements.roadAccess, roadOptions, "Select road access", true);
+  populateSelect(elements.power, powerOptions, "Select power availability", true);
+  populateSelect(elements.water, waterOptions, "Select water availability", true);
+  populateSelect(elements.security, securityOptions, "Select security status", true);
+  attachEvents();
+  updateCities();
+  updateStep();
+  loadPricing();
 }
 
-function openGallery() {
-  imagesInput.removeAttribute("capture");
-  imagesInput.click();
-}
-
-// ============================
-// Estimate Function
-// ============================
-async function estimate() {
-  const city = citySelect.value;
-  const area = areaSelect.value;
-  const bedrooms = document.getElementById("bedrooms").value;
-  const imageFiles = imagesInput.files;
-
-  const resultEl = document.getElementById("result");
-  resultEl.innerText = "Estimating property value...";
-
+async function loadPricing() {
   try {
-    const formData = new FormData();
-    formData.append("city", city);
-    formData.append("area", area);
-    formData.append("bedrooms", bedrooms);
-
-    for (let i = 0; i < imageFiles.length && i < 5; i++) {
-      formData.append("images", imageFiles[i]);
-    }
-
-    const response = await fetch(
-      "https://ac24cbe7-acbd-4473-90d0-1c5cc04fc244-00-1fy8wqlwog2wc.worf.replit.dev/api/estimate",
-      { method: "POST", body: formData }
-    );
-
-    if (!response.ok) throw new Error("Server error");
-
-    const data = await response.json();
-    resultEl.innerText = "Estimated Value: ₦ " + data.price;
-    if (data.saved_images) {
-      resultEl.innerText += "\nSaved Images: " + data.saved_images.join(", ");
-    }
+    const response = await fetch("data/location-pricing.json", { cache: "no-cache" });
+    if (!response.ok) throw new Error("Pricing config failed to load");
+    pricingConfig = await response.json();
+    updateAreas();
   } catch (error) {
-    resultEl.innerText = "Server connection failed.";
-    console.error(error);
+    console.warn(error);
+    pricingConfig = { currency: "NGN", defaultBasePrice: 22000000, states: {}, multipliers: {} };
   }
 }
+
+function normalizeLocationText(value) {
+  return String(value || "").trim().replace(/\s+/g, " ");
+}
+
+function normalizeLocationKey(value) {
+  return normalizeLocationText(value).toLowerCase();
+}
+
+function findMatchingValue(values, rawValue) {
+  const normalizedRaw = normalizeLocationKey(rawValue);
+  if (!normalizedRaw) return "";
+  return values.find((value) => normalizeLocationKey(value) === normalizedRaw) || normalizeLocationText(rawValue);
+}
+
+function getPricingStates() {
+  return Object.keys(pricingConfig?.states || {});
+}
+
+function getSelectedState() {
+  return findMatchingValue([...Object.keys(nigeriaData), ...getPricingStates()], elements.state.value);
+}
+
+function getSelectedCity(stateName = getSelectedState()) {
+  const lgaValues = nigeriaData[stateName] || [];
+  const pricingCities = Object.keys(pricingConfig?.states?.[stateName]?.cities || {});
+  return findMatchingValue([...lgaValues, ...pricingCities], elements.city.value);
+}
+
+function getKnownAreaOptions(stateName = getSelectedState(), cityName = getSelectedCity(stateName)) {
+  return Object.keys(pricingConfig?.states?.[stateName]?.cities?.[cityName]?.areas || {});
+}
+
+function getSelectedKnownArea(stateName = getSelectedState(), cityName = getSelectedCity(stateName)) {
+  return findMatchingValue(getKnownAreaOptions(stateName, cityName), elements.area.value);
+}
+
+function getEffectiveArea() {
+  const manualArea = normalizeLocationText(elements.manualArea.value);
+  if (manualArea) return manualArea;
+  return getSelectedKnownArea();
+}
+
+function getLocationSelection() {
+  const stateName = getSelectedState();
+  const cityName = getSelectedCity(stateName);
+  const knownArea = getSelectedKnownArea(stateName, cityName);
+  const manualArea = normalizeLocationText(elements.manualArea.value);
+
+  return {
+    stateName,
+    cityName,
+    knownArea,
+    manualArea,
+    effectiveArea: manualArea || knownArea
+  };
+}
+
+function isLocationStepValid() {
+  const location = getLocationSelection();
+  return Boolean(location.stateName && location.cityName && location.effectiveArea);
+}
+
+function attachEvents() {
+  elements.startEstimate.addEventListener("click", () => showEstimator());
+  elements.backToLanding.addEventListener("click", () => showLanding());
+  elements.prevStep.addEventListener("click", previousStep);
+  elements.nextStep.addEventListener("click", nextStep);
+  elements.state.addEventListener("change", updateCities);
+  elements.city.addEventListener("change", updateAreas);
+  elements.area.addEventListener("change", () => {
+    updateLocationMessage();
+    updateStep();
+  });
+  elements.manualArea.addEventListener("input", () => {
+    updateLocationMessage();
+    updateStep();
+  });
+  elements.takePhotoBtn.addEventListener("click", () => elements.cameraInput.click());
+  elements.galleryBtn.addEventListener("click", () => elements.galleryInput.click());
+  elements.cameraInput.addEventListener("change", (event) => handleFiles(event.target.files));
+  elements.galleryInput.addEventListener("change", (event) => handleFiles(event.target.files));
+  elements.closeSubscription.addEventListener("click", hideSubscriptionPrompt);
+  elements.startStarterPlan.addEventListener("click", showCheckoutNotice);
+  elements.subscriptionModal.addEventListener("click", (event) => {
+    if (event.target === elements.subscriptionModal) hideSubscriptionPrompt();
+  });
+  elements.uploadDropZone.addEventListener("click", (event) => {
+    if (!event.target.closest("button")) elements.galleryInput.click();
+  });
+  elements.uploadDropZone.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      elements.galleryInput.click();
+    }
+  });
+  elements.uploadDropZone.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    elements.uploadDropZone.classList.add("dragging");
+  });
+  elements.uploadDropZone.addEventListener("dragleave", () => elements.uploadDropZone.classList.remove("dragging"));
+  elements.uploadDropZone.addEventListener("drop", (event) => {
+    event.preventDefault();
+    elements.uploadDropZone.classList.remove("dragging");
+    handleFiles(event.dataTransfer.files);
+  });
+  [
+    elements.propertyType,
+    elements.bedrooms,
+    elements.condition,
+    elements.finishing
+  ].forEach((field) => {
+    field.addEventListener("input", updateStep);
+    field.addEventListener("change", updateStep);
+  });
+}
+
+function readStorageFlag(key) {
+  try {
+    return window.localStorage.getItem(key) === "true";
+  } catch (error) {
+    console.warn(`Unable to read ${key} from local storage`, error);
+    return false;
+  }
+}
+
+function writeStorageFlag(key, value) {
+  try {
+    window.localStorage.setItem(key, String(value));
+  } catch (error) {
+    console.warn(`Unable to write ${key} to local storage`, error);
+  }
+}
+
+function isPaidUser() {
+  return readStorageFlag(PAID_USER_STORAGE_KEY);
+}
+
+function hasUsedFreeTest() {
+  return readStorageFlag(FREE_TEST_STORAGE_KEY);
+}
+
+function canGenerateEstimate() {
+  return isPaidUser() || !hasUsedFreeTest();
+}
+
+function showSubscriptionPrompt() {
+  elements.checkoutNotice.classList.add("hidden");
+  elements.subscriptionModal.classList.remove("hidden");
+}
+
+function hideSubscriptionPrompt() {
+  elements.subscriptionModal.classList.add("hidden");
+}
+
+function showCheckoutNotice() {
+  elements.checkoutNotice.classList.remove("hidden");
+}
+
+function showEstimator() {
+  elements.landing.classList.add("hidden");
+  elements.estimator.classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function showLanding() {
+  elements.estimator.classList.add("hidden");
+  elements.landing.classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function populateSelect(select, values, placeholder, optional = false) {
+  select.innerHTML = `<option value="">${placeholder}</option>`;
+  values.forEach((value) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+  });
+  if (optional && values.length) select.value = values[0];
+}
+
+function updateCities() {
+  const selectedState = getSelectedState();
+  populateSelect(elements.city, nigeriaData[selectedState] || [], selectedState === "Other" ? "Manual entry" : "Select city / LGA");
+  if (selectedState === "Other") elements.city.value = "Manual entry";
+  updateAreas();
+  updateStep();
+}
+
+function updateAreas() {
+  const areas = getKnownAreaOptions();
+  populateSelect(elements.area, areas, areas.length ? "Select known area" : "No saved areas yet");
+  updateLocationMessage();
+  updateStep();
+}
+
+function updateLocationMessage() {
+  const area = getEffectiveArea();
+  elements.locationMessage.textContent = area
+    ? `Using ${area} for the valuation assumptions.`
+    : "Tip: choose a known area or type the neighbourhood manually.";
+}
+
+function buildStepDots() {
+  elements.stepDots.innerHTML = "";
+  steps.forEach((step, index) => {
+    const item = document.createElement("li");
+    item.innerHTML = `<span>${index + 1}</span><small>${step}</small>`;
+    elements.stepDots.appendChild(item);
+  });
+}
+
+function updateStep() {
+  elements.panels.forEach((panel, index) => panel.classList.toggle("active", index === currentStep));
+  [...elements.stepDots.children].forEach((dot, index) => {
+    dot.classList.toggle("active", index === currentStep);
+    dot.classList.toggle("done", index < currentStep);
+  });
+  const progress = Math.round(((currentStep + 1) / steps.length) * 100);
+  elements.stepTitle.textContent = steps[currentStep];
+  elements.stepCounter.textContent = `Step ${currentStep + 1} of ${steps.length}`;
+  elements.progressPercent.textContent = `${progress}%`;
+  elements.progressBar.style.width = `${progress}%`;
+  elements.prevStep.disabled = currentStep === 0;
+  elements.nextStep.textContent = currentStep === steps.length - 1 ? "Estimate Property Value" : "Continue";
+  elements.nextStep.disabled = currentStep === 2 && !canContinue(currentStep);
+}
+
+function canContinue(stepIndex) {
+  if (stepIndex === 0) return !photoScreeningInProgress && !rejectedPropertyPhotoAttempt;
+  if (stepIndex === 1) return isLocationStepValid();
+  if (stepIndex === 2) return Boolean(elements.propertyType.value && elements.bedrooms.value !== "" && elements.condition.value && elements.finishing.value);
+  return true;
+}
+
+function nextStep() {
+  if (!canContinue(currentStep)) {
+    showValidationMessage();
+    return;
+  }
+  if (currentStep === steps.length - 1) {
+    runEstimate();
+    return;
+  }
+  currentStep += 1;
+  updateStep();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function previousStep() {
+  if (currentStep === 0) return;
+  currentStep -= 1;
+  updateStep();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function showValidationMessage() {
+  if (currentStep === 0 && rejectedPropertyPhotoAttempt) {
+    elements.photoError.textContent = "That image does not look like a property photo. Please add a building, room, kitchen, bathroom, or access-road photo to continue.";
+  }
+  if (currentStep === 1) {
+    elements.locationMessage.textContent = "Please select a state, city/LGA, and either choose a known area or enter the area manually.";
+  }
+}
+
+function loadPhotoScreeningModel() {
+  if (!window.mobilenet?.load) {
+    return Promise.reject(new Error("On-device photo screening is unavailable. Check your connection and try again."));
+  }
+  if (!photoScreeningModelPromise) {
+    photoScreeningModelPromise = window.mobilenet.load({ version: 2, alpha: 0.5 }).catch((error) => {
+      photoScreeningModelPromise = null;
+      throw error;
+    });
+  }
+  return photoScreeningModelPromise;
+}
+
+function getKeywordPrediction(predictions, keywords) {
+  return predictions.find((prediction) => {
+    const className = prediction.className.toLowerCase();
+    return keywords.some((keyword) => className.includes(keyword));
+  });
+}
+
+function predictionMatches(predictions, keywords) {
+  return Boolean(getKeywordPrediction(predictions, keywords));
+}
+
+function describePredictions(predictions) {
+  return predictions.slice(0, 3).map((prediction) => prediction.className).join(", ");
+}
+
+function loadPreviewImage(url) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("The selected image could not be read."));
+    image.src = url;
+  });
+}
+
+async function screenPropertyPhoto(file, url) {
+  const model = await loadPhotoScreeningModel();
+  const image = await loadPreviewImage(url);
+  const predictions = await model.classify(image, 5);
+  const propertyPrediction = getKeywordPrediction(predictions, PROPERTY_PHOTO_KEYWORDS);
+  const unrelatedPrediction = getKeywordPrediction(predictions, UNRELATED_PHOTO_KEYWORDS);
+  const hasStrongPropertyEvidence = Boolean(propertyPrediction && propertyPrediction.probability >= PROPERTY_PHOTO_MIN_CONFIDENCE);
+  const accepted = hasStrongPropertyEvidence && !unrelatedPrediction;
+
+  return {
+    accepted,
+    predictions,
+    propertyPrediction,
+    unrelatedPrediction,
+    reason: accepted
+      ? "Property photo suitability check passed."
+      : unrelatedPrediction
+        ? `This looks like a non-property document or object (${describePredictions(predictions)}).`
+        : `This image does not show enough building or interior evidence (${describePredictions(predictions)}).`
+  };
+}
+
+async function handleFiles(fileList) {
+  elements.photoError.textContent = "";
+  const incomingFiles = [...fileList];
+  if (!incomingFiles.length) return;
+
+  if (selectedPhotos.length + incomingFiles.length > MAX_PHOTOS) {
+    elements.photoError.textContent = "You can upload a maximum of 5 photos. Remove one photo before adding more.";
+  }
+
+  photoScreeningInProgress = true;
+  let unsuitablePhotoFound = false;
+  elements.photoScreeningStatus.textContent = "Checking photo suitability on your device...";
+  updateStep();
+
+  for (const file of incomingFiles.slice(0, MAX_PHOTOS - selectedPhotos.length)) {
+    if (!file.type.startsWith("image/")) {
+      elements.photoError.textContent = "Only image files are supported. Please choose JPG, PNG, WEBP or GIF photos.";
+      continue;
+    }
+    if (file.size > MAX_PHOTO_SIZE) {
+      elements.photoError.textContent = `${file.name} is larger than 6MB. Please choose a smaller image.`;
+      continue;
+    }
+
+    const url = URL.createObjectURL(file);
+    try {
+      const screening = await screenPropertyPhoto(file, url);
+      if (!screening.accepted) {
+        unsuitablePhotoFound = true;
+        elements.photoError.textContent = `${screening.reason} Please add a building, room, kitchen, bathroom, or access-road photo.`;
+        URL.revokeObjectURL(url);
+        continue;
+      }
+      selectedPhotos.push({ id: window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random()}`, file, url, screening });
+    } catch (error) {
+      unsuitablePhotoFound = true;
+      elements.photoError.textContent = `${error.message} Uploaded photos cannot be used until the suitability check completes.`;
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  photoScreeningInProgress = false;
+  rejectedPropertyPhotoAttempt = unsuitablePhotoFound && selectedPhotos.length === 0;
+  elements.photoScreeningStatus.textContent = selectedPhotos.length
+    ? `${selectedPhotos.length} suitable property photo${selectedPhotos.length > 1 ? "s" : ""} verified on this device.`
+    : "";
+  elements.cameraInput.value = "";
+  elements.galleryInput.value = "";
+  renderPhotos();
+}
+
+function renderPhotos() {
+  elements.photoGrid.innerHTML = "";
+  selectedPhotos.forEach((photo, index) => {
+    const card = document.createElement("figure");
+    card.className = "photo-preview";
+    card.innerHTML = `<img src="${photo.url}" alt="Selected property photo ${index + 1}"><button type="button" aria-label="Remove photo ${index + 1}">Remove</button>`;
+    card.querySelector("button").addEventListener("click", () => removePhoto(photo.id));
+    elements.photoGrid.appendChild(card);
+  });
+  updateStep();
+}
+
+function removePhoto(photoId) {
+  const photo = selectedPhotos.find((item) => item.id === photoId);
+  if (photo) URL.revokeObjectURL(photo.url);
+  selectedPhotos = selectedPhotos.filter((item) => item.id !== photoId);
+  elements.photoError.textContent = "";
+  elements.photoScreeningStatus.textContent = selectedPhotos.length
+    ? `${selectedPhotos.length} suitable property photo${selectedPhotos.length > 1 ? "s" : ""} verified on this device.`
+    : "";
+  renderPhotos();
+}
+
+function getAreaName() {
+  return getEffectiveArea();
+}
+
+function getNumber(element, fallback = 0) {
+  const value = Number(element.value);
+  return Number.isFinite(value) && value >= 0 ? value : fallback;
+}
+
+function runEstimate() {
+  if (photoScreeningInProgress || rejectedPropertyPhotoAttempt) {
+    elements.photoError.textContent = photoScreeningInProgress
+      ? "Please wait while the uploaded photo suitability check completes."
+      : "Please add a suitable property photo before generating an estimate, or reload the page to continue without an upload.";
+    currentStep = 0;
+    updateStep();
+    return;
+  }
+
+  if (!canGenerateEstimate()) {
+    showSubscriptionPrompt();
+    return;
+  }
+
+  elements.readyToEstimate.classList.add("hidden");
+  elements.resultCard.classList.add("hidden");
+  elements.resultLoading.classList.remove("hidden");
+  elements.nextStep.disabled = true;
+
+  window.setTimeout(() => {
+    lastResult = calculateEstimate();
+    if (!isPaidUser()) writeStorageFlag(FREE_TEST_STORAGE_KEY, true);
+    renderResult(lastResult);
+    elements.resultLoading.classList.add("hidden");
+    elements.resultCard.classList.remove("hidden");
+    elements.nextStep.disabled = false;
+    elements.nextStep.textContent = "Refresh Estimate";
+  }, 750);
+}
+
+function calculateEstimate() {
+  const { stateName, cityName, effectiveArea: areaName } = getLocationSelection();
+  const bedrooms = getNumber(elements.bedrooms);
+  const bathrooms = getNumber(elements.bathrooms, bedrooms || 1);
+  const toilets = getNumber(elements.toilets, Math.max(bathrooms, bedrooms));
+  const landSize = getNumber(elements.landSize);
+  const age = getNumber(elements.buildingAge);
+  const statePricing = pricingConfig?.states?.[stateName];
+  const cityPricing = statePricing?.cities?.[cityName];
+  const areaPrice = cityPricing?.areas?.[areaName];
+  const basePrice = areaPrice || cityPricing?.defaultBasePrice || statePricing?.defaultBasePrice || pricingConfig?.defaultBasePrice || 22000000;
+  const multipliers = pricingConfig?.multipliers || {};
+
+  const propertyMultiplier = multipliers.propertyType?.[elements.propertyType.value] || 1;
+  const conditionMultiplier = multipliers.condition?.[elements.condition.value] || 1;
+  const finishingMultiplier = multipliers.finishing?.[elements.finishing.value] || 1;
+  const roadMultiplier = multipliers.roadAccess?.[elements.roadAccess.value] || 1;
+  const powerMultiplier = multipliers.power?.[elements.power.value] || 1;
+  const waterMultiplier = multipliers.water?.[elements.water.value] || 1;
+  const securityMultiplier = multipliers.security?.[elements.security.value] || 1;
+  const bedroomMultiplier = elements.propertyType.value === "Land only" ? 1 : 1 + Math.max(bedrooms - 3, -2) * 0.075;
+  const bathToiletMultiplier = elements.propertyType.value === "Land only" ? 1 : 1 + Math.min((bathrooms + toilets) * 0.012, 0.16);
+  const landMultiplier = landSize > 0 ? Math.min(Math.max(landSize / 600, 0.72), 1.45) : 1;
+  const ageMultiplier = age > 0 ? Math.max(0.82, 1 - Math.min(age, 35) * 0.006) : 1;
+
+  const midpoint = Math.round((basePrice * propertyMultiplier * conditionMultiplier * finishingMultiplier * roadMultiplier * powerMultiplier * waterMultiplier * securityMultiplier * bedroomMultiplier * bathToiletMultiplier * landMultiplier * ageMultiplier) / 100000) * 100000;
+  const confidence = calculateConfidence(Boolean(areaPrice), landSize, age);
+  const rangeSpread = confidence >= 80 ? 0.12 : confidence >= 65 ? 0.16 : 0.22;
+  const low = Math.round((midpoint * (1 - rangeSpread)) / 100000) * 100000;
+  const high = Math.round((midpoint * (1 + rangeSpread)) / 100000) * 100000;
+
+  const positiveFactors = buildPositiveFactors({ areaPrice, landSize, roadMultiplier, powerMultiplier, waterMultiplier, securityMultiplier, conditionMultiplier, finishingMultiplier });
+  const negativeFactors = buildNegativeFactors({ areaPrice, roadMultiplier, powerMultiplier, waterMultiplier, securityMultiplier, conditionMultiplier, age, landSize });
+
+  return {
+    success: true,
+    estimate: { low, midpoint, high, currency: pricingConfig?.currency || "NGN", confidence },
+    propertySummary: {
+      location: `${areaName}, ${cityName}, ${statePricing?.displayName || stateName}`,
+      propertyType: elements.propertyType.value,
+      bedrooms,
+      bathrooms,
+      toilets,
+      condition: elements.condition.value,
+      finishing: elements.finishing.value,
+      photos: selectedPhotos.length
+    },
+    positiveFactors,
+    negativeFactors,
+    assumptions: [
+      `Base pricing uses ${areaPrice ? "the selected area" : cityPricing ? "the selected city/LGA" : statePricing ? "the selected state" : "the default Other/manual location"} assumption from data/location-pricing.json.`,
+      "Uploaded photos improve confidence only; no external AI image analysis or cloud upload is used in this phase.",
+      "The estimate is a range because Nigerian property prices vary by title, exact street, negotiation, and market timing."
+    ],
+    disclaimer: DISCLAIMER
+  };
+}
+
+function calculateConfidence(hasKnownArea, landSize, age) {
+  let confidence = 48;
+  if (elements.state.value && elements.city.value) confidence += 10;
+  if (hasKnownArea || elements.manualArea.value.trim()) confidence += hasKnownArea ? 10 : 5;
+  if (elements.propertyType.value && elements.bedrooms.value !== "") confidence += 10;
+  if (elements.condition.value && elements.finishing.value) confidence += 8;
+  confidence += Math.min(selectedPhotos.length * 4, 16);
+  if (landSize > 0) confidence += 4;
+  if (age > 0) confidence += 2;
+  return Math.min(confidence, 92);
+}
+
+function buildPositiveFactors(values) {
+  const factors = [];
+  if (values.areaPrice) factors.push("Known area pricing assumption selected.");
+  if (selectedPhotos.length) factors.push(`${selectedPhotos.length} photo${selectedPhotos.length > 1 ? "s" : ""} added to support confidence.`);
+  if (values.conditionMultiplier > 1) factors.push(`${elements.condition.value} building condition increases value.`);
+  if (values.finishingMultiplier > 1) factors.push(`${elements.finishing.value} finishing quality adds a premium.`);
+  if (values.roadMultiplier > 1) factors.push(`${elements.roadAccess.value} improves accessibility.`);
+  if (values.powerMultiplier > 1) factors.push(`${elements.power.value} supports livability and value.`);
+  if (values.waterMultiplier > 1) factors.push(`${elements.water.value} supports utility reliability.`);
+  if (values.securityMultiplier > 1) factors.push(`${elements.security.value} adds a security premium.`);
+  if (values.landSize >= 600) factors.push("Land size is above the common 600sqm reference point.");
+  return factors.length ? factors : ["Core property details were provided for a structured estimate."];
+}
+
+function buildNegativeFactors(values) {
+  const factors = [];
+  if (!values.areaPrice) factors.push("Exact area was not in the pricing config, so broader location assumptions were used.");
+  if (!selectedPhotos.length) factors.push("No photos were uploaded, so confidence is lower.");
+  if (values.conditionMultiplier < 1) factors.push(`${elements.condition.value} condition reduces the estimate.`);
+  if (values.roadMultiplier < 1) factors.push(`${elements.roadAccess.value} can reduce buyer demand.`);
+  if (values.powerMultiplier < 1) factors.push(`${elements.power.value} can reduce livability.`);
+  if (values.waterMultiplier < 1) factors.push(`${elements.water.value} can reduce utility reliability.`);
+  if (values.securityMultiplier < 1) factors.push(`${elements.security.value} may reduce perceived safety.`);
+  if (values.age > 15) factors.push("Older building age may require maintenance allowance.");
+  if (values.landSize > 0 && values.landSize < 450) factors.push("Land size is below the common 600sqm reference point.");
+  return factors.length ? factors : ["No major risk factors were selected in the optional inputs."];
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(value);
+}
+
+function renderResult(result) {
+  const summary = result.propertySummary;
+  const paidUser = isPaidUser();
+  const reportMessage = paidUser
+    ? "Paid access is active. Download your preliminary valuation report for review."
+    : "Your first free estimate is view-only. Subscribe to download detailed reports and run more valuations.";
+  elements.resultCard.innerHTML = `
+    <div class="result-hero reveal-card">
+      <span class="badge">AI-assisted estimate</span>
+      <p>Preliminary market estimate</p>
+      <strong>${formatCurrency(result.estimate.midpoint)}</strong>
+      <span class="range">${formatCurrency(result.estimate.low)} – ${formatCurrency(result.estimate.high)}</span>
+      <div class="confidence"><span>Confidence</span><strong>${result.estimate.confidence}%</strong><div><i style="width:${result.estimate.confidence}%"></i></div></div>
+    </div>
+    <div class="report-access-card ${paidUser ? "paid-access" : "free-access"}">
+      <div>
+        <span class="eyebrow">Valuation intelligence report</span>
+        <h4>${paidUser ? "Report download available" : "Free estimate: view-only access"}</h4>
+        <p>${reportMessage}</p>
+      </div>
+      <button id="downloadReport" class="btn ${paidUser ? "btn-primary" : "btn-light"}" type="button" ${paidUser ? "" : "disabled"}>${paidUser ? "Download valuation report" : "Report download is available on paid plans"}</button>
+    </div>
+    <div class="result-grid">
+      ${renderInfoCard("Property summary", [summary.propertyType, `${summary.bedrooms} bedroom(s)`, `${summary.bathrooms} bathroom(s)`, `${summary.toilets} toilet(s)`, summary.condition, `${summary.finishing} finishing`])}
+      ${renderInfoCard("Location summary", [summary.location, `${summary.photos} photo(s) added`, result.estimate.currency])}
+      ${renderInfoCard("Key value drivers", result.positiveFactors)}
+      ${renderInfoCard("Risk factors", result.negativeFactors)}
+      ${renderInfoCard("Assumptions", result.assumptions)}
+    </div>
+    <div class="disclaimer-card"><strong>Professional review recommended</strong><p>${result.disclaimer}</p></div>
+    <div class="result-actions">
+      <a class="btn btn-primary" href="${CONTACT_URL}" target="_blank" rel="noopener">Request Professional Inspection</a>
+      <a class="btn btn-secondary" href="${CONTACT_URL}" target="_blank" rel="noopener">Contact Tafid Real Estate</a>
+      <button class="btn btn-light" type="button" id="startAnother">Start Another Estimate</button>
+    </div>
+  `;
+  $("startAnother").addEventListener("click", resetEstimate);
+  if (paidUser) $("downloadReport").addEventListener("click", downloadReport);
+}
+
+function downloadReport() {
+  if (!isPaidUser() || !lastResult) {
+    showSubscriptionPrompt();
+    return;
+  }
+
+  const summary = lastResult.propertySummary;
+  const report = [
+    "Tafid Real Estate - Preliminary Valuation Intelligence Report",
+    "",
+    `Estimated range: ${formatCurrency(lastResult.estimate.low)} - ${formatCurrency(lastResult.estimate.high)}`,
+    `Estimated midpoint: ${formatCurrency(lastResult.estimate.midpoint)}`,
+    `Confidence: ${lastResult.estimate.confidence}%`,
+    `Location: ${summary.location}`,
+    `Property: ${summary.propertyType}, ${summary.bedrooms} bedroom(s)`,
+    "",
+    "Professional review recommended.",
+    lastResult.disclaimer
+  ].join("\n");
+  const url = URL.createObjectURL(new Blob([report], { type: "text/plain;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "property-valuation-report.txt";
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function renderInfoCard(title, items) {
+  return `<article class="info-card"><h4>${title}</h4><ul>${items.map((item) => `<li>${item}</li>`).join("")}</ul></article>`;
+}
+
+function resetEstimate() {
+  if (!canGenerateEstimate()) {
+    showSubscriptionPrompt();
+    return;
+  }
+
+  selectedPhotos.forEach((photo) => URL.revokeObjectURL(photo.url));
+  selectedPhotos = [];
+  lastResult = null;
+  photoScreeningInProgress = false;
+  rejectedPropertyPhotoAttempt = false;
+  elements.photoScreeningStatus.textContent = "";
+  document.getElementById("estimateForm").reset();
+  populateSelect(elements.state, Object.keys(nigeriaData), "Select state");
+  updateCities();
+  renderPhotos();
+  elements.resultCard.classList.add("hidden");
+  elements.resultCard.innerHTML = "";
+  elements.readyToEstimate.classList.remove("hidden");
+  currentStep = 0;
+  updateStep();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch((error) => console.warn("Service worker registration failed", error));
+  });
+}
+
+document.addEventListener("DOMContentLoaded", init);

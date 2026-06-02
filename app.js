@@ -3,6 +3,8 @@ const MAX_PHOTO_SIZE = 6 * 1024 * 1024;
 const CONTACT_URL = "https://realestate.tafid.org/contact/";
 const FREE_TEST_STORAGE_KEY = "property_ai_free_test_used";
 const PAID_USER_STORAGE_KEY = "property_ai_paid_user";
+const PROPERTY_PHOTO_KEYWORDS = ["house", "home", "building", "palace", "estate", "apartment", "villa", "mansion", "terrace", "patio", "porch", "door", "window", "roof", "room", "studio couch", "dining table", "entertainment center", "wardrobe", "bookcase", "shower curtain", "bathtub", "washbasin", "kitchen", "refrigerator", "stove", "oven", "dishwasher", "toilet seat", "fountain", "street", "driveway", "greenhouse", "barn", "boathouse", "church", "monastery", "library", "restaurant"];
+const UNRELATED_PHOTO_KEYWORDS = ["shoe", "sandal", "slipper", "sneaker", "boot", "loafer", "running shoe", "clog", "handbag", "backpack", "wallet", "watch", "cellular telephone", "mobile phone", "laptop", "keyboard", "mouse", "bottle", "plate", "cup", "banana", "orange", "pizza", "dog", "cat", "bird", "car", "motorcycle", "bicycle", "person", "jersey", "sock", "sunglass", "lipstick"];
 const DISCLAIMER = "This is an AI-assisted property estimate based on the information provided. It is not a formal valuation report and should be verified by a qualified property professional.";
 
 const nigeriaData = {
@@ -25,6 +27,9 @@ let currentStep = 0;
 let selectedPhotos = [];
 let pricingConfig = null;
 let lastResult = null;
+let photoScreeningModelPromise = null;
+let photoScreeningInProgress = false;
+let rejectedPropertyPhotoAttempt = false;
 
 const $ = (id) => document.getElementById(id);
 
@@ -48,6 +53,7 @@ const elements = {
   galleryInput: $("galleryInput"),
   photoGrid: $("photoGrid"),
   photoError: $("photoError"),
+  photoScreeningStatus: $("photoScreeningStatus"),
   state: $("state"),
   city: $("city"),
   area: $("area"),
@@ -331,6 +337,7 @@ function updateStep() {
 }
 
 function canContinue(stepIndex) {
+  if (stepIndex === 0) return !photoScreeningInProgress && !rejectedPropertyPhotoAttempt;
   if (stepIndex === 1) return isLocationStepValid();
   if (stepIndex === 2) return Boolean(elements.propertyType.value && elements.bedrooms.value !== "" && elements.condition.value && elements.finishing.value);
   return true;
@@ -358,12 +365,64 @@ function previousStep() {
 }
 
 function showValidationMessage() {
+  if (currentStep === 0 && rejectedPropertyPhotoAttempt) {
+    elements.photoError.textContent = "That image does not look like a property photo. Please add a building, room, kitchen, bathroom, or access-road photo to continue.";
+  }
   if (currentStep === 1) {
     elements.locationMessage.textContent = "Please select a state, city/LGA, and either choose a known area or enter the area manually.";
   }
 }
 
-function handleFiles(fileList) {
+function loadPhotoScreeningModel() {
+  if (!window.mobilenet?.load) {
+    return Promise.reject(new Error("On-device photo screening is unavailable. Check your connection and try again."));
+  }
+  if (!photoScreeningModelPromise) {
+    photoScreeningModelPromise = window.mobilenet.load({ version: 2, alpha: 0.5 }).catch((error) => {
+      photoScreeningModelPromise = null;
+      throw error;
+    });
+  }
+  return photoScreeningModelPromise;
+}
+
+function predictionMatches(predictions, keywords) {
+  return predictions.some((prediction) => {
+    const className = prediction.className.toLowerCase();
+    return keywords.some((keyword) => className.includes(keyword));
+  });
+}
+
+function describePredictions(predictions) {
+  return predictions.slice(0, 3).map((prediction) => prediction.className).join(", ");
+}
+
+function loadPreviewImage(url) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("The selected image could not be read."));
+    image.src = url;
+  });
+}
+
+async function screenPropertyPhoto(file, url) {
+  const model = await loadPhotoScreeningModel();
+  const image = await loadPreviewImage(url);
+  const predictions = await model.classify(image, 5);
+  const looksPropertyRelated = predictionMatches(predictions, PROPERTY_PHOTO_KEYWORDS);
+  const looksClearlyUnrelated = predictionMatches(predictions, UNRELATED_PHOTO_KEYWORDS);
+
+  return {
+    accepted: looksPropertyRelated || !looksClearlyUnrelated,
+    predictions,
+    reason: looksClearlyUnrelated && !looksPropertyRelated
+      ? `This looks unrelated to a property (${describePredictions(predictions)}).`
+      : "Property photo suitability check passed."
+  };
+}
+
+async function handleFiles(fileList) {
   elements.photoError.textContent = "";
   const incomingFiles = [...fileList];
   if (!incomingFiles.length) return;
@@ -372,18 +431,43 @@ function handleFiles(fileList) {
     elements.photoError.textContent = "You can upload a maximum of 5 photos. Remove one photo before adding more.";
   }
 
-  incomingFiles.slice(0, MAX_PHOTOS - selectedPhotos.length).forEach((file) => {
+  photoScreeningInProgress = true;
+  let unsuitablePhotoFound = false;
+  elements.photoScreeningStatus.textContent = "Checking photo suitability on your device...";
+  updateStep();
+
+  for (const file of incomingFiles.slice(0, MAX_PHOTOS - selectedPhotos.length)) {
     if (!file.type.startsWith("image/")) {
       elements.photoError.textContent = "Only image files are supported. Please choose JPG, PNG, WEBP or GIF photos.";
-      return;
+      continue;
     }
     if (file.size > MAX_PHOTO_SIZE) {
       elements.photoError.textContent = `${file.name} is larger than 6MB. Please choose a smaller image.`;
-      return;
+      continue;
     }
-    selectedPhotos.push({ id: window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random()}`, file, url: URL.createObjectURL(file) });
-  });
 
+    const url = URL.createObjectURL(file);
+    try {
+      const screening = await screenPropertyPhoto(file, url);
+      if (!screening.accepted) {
+        unsuitablePhotoFound = true;
+        elements.photoError.textContent = `${screening.reason} Please add a building, room, kitchen, bathroom, or access-road photo.`;
+        URL.revokeObjectURL(url);
+        continue;
+      }
+      selectedPhotos.push({ id: window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random()}`, file, url, screening });
+    } catch (error) {
+      unsuitablePhotoFound = true;
+      elements.photoError.textContent = `${error.message} Uploaded photos cannot be used until the suitability check completes.`;
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  photoScreeningInProgress = false;
+  rejectedPropertyPhotoAttempt = unsuitablePhotoFound && selectedPhotos.length === 0;
+  elements.photoScreeningStatus.textContent = selectedPhotos.length
+    ? `${selectedPhotos.length} suitable property photo${selectedPhotos.length > 1 ? "s" : ""} verified on this device.`
+    : "";
   elements.cameraInput.value = "";
   elements.galleryInput.value = "";
   renderPhotos();
@@ -406,6 +490,9 @@ function removePhoto(photoId) {
   if (photo) URL.revokeObjectURL(photo.url);
   selectedPhotos = selectedPhotos.filter((item) => item.id !== photoId);
   elements.photoError.textContent = "";
+  elements.photoScreeningStatus.textContent = selectedPhotos.length
+    ? `${selectedPhotos.length} suitable property photo${selectedPhotos.length > 1 ? "s" : ""} verified on this device.`
+    : "";
   renderPhotos();
 }
 
@@ -419,6 +506,15 @@ function getNumber(element, fallback = 0) {
 }
 
 function runEstimate() {
+  if (photoScreeningInProgress || rejectedPropertyPhotoAttempt) {
+    elements.photoError.textContent = photoScreeningInProgress
+      ? "Please wait while the uploaded photo suitability check completes."
+      : "Please add a suitable property photo before generating an estimate, or reload the page to continue without an upload.";
+    currentStep = 0;
+    updateStep();
+    return;
+  }
+
   if (!canGenerateEstimate()) {
     showSubscriptionPrompt();
     return;
@@ -622,6 +718,9 @@ function resetEstimate() {
   selectedPhotos.forEach((photo) => URL.revokeObjectURL(photo.url));
   selectedPhotos = [];
   lastResult = null;
+  photoScreeningInProgress = false;
+  rejectedPropertyPhotoAttempt = false;
+  elements.photoScreeningStatus.textContent = "";
   document.getElementById("estimateForm").reset();
   populateSelect(elements.state, Object.keys(nigeriaData), "Select state");
   updateCities();

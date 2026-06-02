@@ -373,3 +373,11 @@ select:focus, input:focus { border-color: var(--green-2); box-shadow: 0 0 0 4px 
   .modal-backdrop { place-items: end center; padding: 10px; }
   .paywall-card { border-radius: 26px; }
 }
+
+.screening-status {
+  min-height: 20px;
+  margin-top: 8px;
+  color: var(--green-2);
+  font-size: 0.86rem;
+  font-weight: 700;
+}

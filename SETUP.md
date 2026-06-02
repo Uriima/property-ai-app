@@ -101,3 +101,15 @@ localStorage.setItem("property_ai_paid_user", "true");
 Paid-placeholder testing should allow repeat estimates and enable the preliminary text-report download button. This development flag is not a real subscription and must not be exposed as a normal user-facing setting.
 
 **No payment gateway is integrated in this phase.** A future payment phase should use Paystack or Flutterwave and replace the local paid placeholder with authenticated subscription status.
+
+## Test property photo suitability screening
+
+The app loads pinned TensorFlow.js and MobileNet browser scripts from jsDelivr and screens selected photos on the user's device. No photo is uploaded to a backend.
+
+1. Start the local server and open the estimator.
+2. Upload a clear exterior, room, kitchen, bathroom, or access-road photo.
+3. Confirm the app shows that a suitable property photo was verified.
+4. Upload a clearly unrelated image such as a shoe photo.
+5. Confirm the app rejects it and asks for a property photo before continuing.
+
+The first screening attempt requires an internet connection so the browser can load the model assets. This is a lightweight suitability check, not a formal inspection or custom YOLO detector.

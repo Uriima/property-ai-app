@@ -86,3 +86,16 @@ Preview reviewers should confirm:
 5. Mobile preview widths show the paywall without horizontal overflow.
 
 **No payment gateway is integrated in this phase.** A future production payment integration should use Paystack or Flutterwave. Do not treat the development paid-user local storage flag as secure production entitlement storage.
+
+## Property photo screening preview check
+
+The Vercel Preview should be tested with both suitable and unrelated photos. The browser loads pinned TensorFlow.js MobileNet assets from jsDelivr and performs the suitability check on-device. Photos are not uploaded to a backend image-analysis service, and no AI image-analysis secret is required.
+
+Confirm that:
+
+1. A clear property exterior or interior photo can be verified and previewed.
+2. A clearly unrelated photo such as a shoe is rejected before valuation.
+3. A friendly retry message appears when screening fails or model assets cannot load.
+4. The user can still generate an estimate without uploading a photo if they did not attempt to submit an unsuitable image.
+
+This is a lightweight suitability guard, not a formal inspection or custom YOLO property detector.

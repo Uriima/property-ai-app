@@ -142,3 +142,13 @@ localStorage.setItem("property_ai_paid_user", "true");
 ```
 
 Do not expose the paid-user placeholder as a normal user-facing control. It exists only for development and preview testing until a payment gateway and authenticated subscription state are implemented.
+
+## On-device property photo suitability check
+
+Uploaded images are screened in the browser with TensorFlow.js MobileNet before they can support an estimate. Clearly unrelated images, such as a shoe photo, are rejected with a friendly message. Suitable building, room, kitchen, bathroom, or access-road images are kept as local previews only.
+
+- The screening check runs on the user's device.
+- Photos are not uploaded to Tafid or an external image-analysis API.
+- No AI image-analysis secret is required.
+- The first screening run requires internet access to load the pinned TensorFlow.js and MobileNet browser assets from jsDelivr.
+- This is a lightweight suitability guard, not a formal property inspection and not a custom YOLO property-detection model. Ambiguous photos may still require the user to retry with a clearer property image.

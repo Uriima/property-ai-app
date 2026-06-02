@@ -295,7 +295,11 @@ select:focus, input:focus { border-color: var(--green-2); box-shadow: 0 0 0 4px 
   .step-dots small { display: none; }
   .app-header { grid-template-columns: 1fr; }
   .ghost-link { justify-self: start; }
-  .navigation-bar { grid-template-columns: 1fr; }
+  .navigation-bar {
+    position: static;
+    bottom: auto;
+    grid-template-columns: 1fr;
+  }
   .navigation-bar .btn { width: 100%; }
 }
 

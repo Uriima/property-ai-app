@@ -1,0 +1,169 @@
+{
+  "version": "2026.05.phase-1",
+  "currency": "NGN",
+  "defaultBasePrice": 22000000,
+  "notes": "Editable sample assumptions for frontend-only estimates. Update base prices after local market review.",
+  "states": {
+    "Lagos": {
+      "displayName": "Lagos",
+      "defaultBasePrice": 52000000,
+      "cities": {
+        "Eti Osa": {
+          "defaultBasePrice": 155000000,
+          "areas": {
+            "Ikoyi": 420000000,
+            "Victoria Island": 360000000,
+            "Lekki Phase 1": 245000000,
+            "Chevron": 185000000,
+            "Ajah": 85000000
+          }
+        },
+        "Ibeju Lekki": {
+          "defaultBasePrice": 62000000,
+          "areas": {
+            "Awoyaya": 52000000,
+            "Lakowe": 66000000,
+            "Eleko": 58000000
+          }
+        },
+        "Ikeja": {
+          "defaultBasePrice": 145000000,
+          "areas": {
+            "GRA": 260000000,
+            "Opebi": 155000000,
+            "Alausa": 170000000
+          }
+        },
+        "Surulere": {
+          "defaultBasePrice": 78000000,
+          "areas": {
+            "Bode Thomas": 105000000,
+            "Aguda": 72000000,
+            "Ojuelegba": 62000000
+          }
+        },
+        "Ikorodu": {
+          "defaultBasePrice": 38000000,
+          "areas": {
+            "GRA": 62000000,
+            "Ebute": 34000000,
+            "Igbogbo": 30000000
+          }
+        }
+      }
+    },
+    "FCT": {
+      "displayName": "Abuja / FCT",
+      "defaultBasePrice": 68000000,
+      "cities": {
+        "Municipal Area Council": {
+          "defaultBasePrice": 150000000,
+          "areas": {
+            "Maitama": 390000000,
+            "Asokoro": 360000000,
+            "Wuse 2": 240000000,
+            "Garki": 130000000,
+            "Gwarinpa": 115000000
+          }
+        },
+        "Bwari": {
+          "defaultBasePrice": 52000000,
+          "areas": {
+            "Kubwa": 56000000,
+            "Dutse": 42000000,
+            "Bwari Town": 36000000
+          }
+        },
+        "Gwagwalada": {
+          "defaultBasePrice": 34000000,
+          "areas": {
+            "Gwagwalada Town": 34000000
+          }
+        }
+      }
+    },
+    "Rivers": {
+      "displayName": "Rivers / Port Harcourt",
+      "defaultBasePrice": 44000000,
+      "cities": {
+        "Port Harcourt": {
+          "defaultBasePrice": 85000000,
+          "areas": {
+            "Old GRA": 180000000,
+            "New GRA": 145000000,
+            "D-Line": 90000000,
+            "Trans Amadi": 76000000
+          }
+        },
+        "Obio Akpor": {
+          "defaultBasePrice": 62000000,
+          "areas": {
+            "Rumuola": 72000000,
+            "Rumuokoro": 56000000,
+            "Woji": 65000000,
+            "Peter Odili Road": 98000000
+          }
+        }
+      }
+    },
+    "Other": {
+      "displayName": "Other / Manual Entry",
+      "defaultBasePrice": 22000000,
+      "cities": {
+        "Manual entry": {
+          "defaultBasePrice": 22000000,
+          "areas": {
+            "Manual area": 22000000
+          }
+        }
+      }
+    }
+  },
+  "multipliers": {
+    "propertyType": {
+      "Detached duplex": 1.55,
+      "Semi-detached duplex": 1.32,
+      "Terrace duplex": 1.18,
+      "Bungalow": 0.92,
+      "Block of flats": 1.4,
+      "Apartment": 0.74,
+      "Land only": 0.62
+    },
+    "condition": {
+      "New": 1.14,
+      "Fairly used": 1,
+      "Needs renovation": 0.82,
+      "Uncompleted": 0.68
+    },
+    "finishing": {
+      "Basic": 0.9,
+      "Standard": 1,
+      "Premium": 1.18,
+      "Luxury": 1.38
+    },
+    "roadAccess": {
+      "Tarred road": 1.06,
+      "Untarred road": 0.96,
+      "Estate road": 1.1,
+      "Poor access": 0.86
+    },
+    "power": {
+      "Public power only": 1,
+      "Public power plus inverter/solar": 1.06,
+      "Estate/generator support": 1.08,
+      "Poor power supply": 0.94
+    },
+    "water": {
+      "Reliable borehole/public water": 1.04,
+      "Private borehole": 1.02,
+      "Public water only": 1,
+      "Unreliable water": 0.94
+    },
+    "security": {
+      "Gated estate with security": 1.1,
+      "Street security": 1.04,
+      "Basic neighbourhood security": 1,
+      "No clear security": 0.96
+    }
+  }
+}

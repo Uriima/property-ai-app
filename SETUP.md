@@ -74,3 +74,30 @@ To add a new state or city, copy the structure used for Lagos, FCT, or Rivers. F
 ```
 
 Keep the file valid JSON: use double quotes, commas between items, and no comments inside the JSON.
+
+## Test the subscription-ready access states
+
+The first free estimate and paid placeholder use local browser storage only. No sensitive property details or photos are stored.
+
+### Start as a new user
+
+Open the browser developer console and run:
+
+```js
+localStorage.removeItem("property_ai_free_test_used");
+localStorage.removeItem("property_ai_paid_user");
+```
+
+Then complete one estimate. The result should display in view-only mode and the report download button should be disabled. Starting another estimate should show the Starter subscription prompt beginning at **₦2,000/month**.
+
+### Test the future paid-user placeholder
+
+Open the browser developer console and run:
+
+```js
+localStorage.setItem("property_ai_paid_user", "true");
+```
+
+Paid-placeholder testing should allow repeat estimates and enable the preliminary text-report download button. This development flag is not a real subscription and must not be exposed as a normal user-facing setting.
+
+**No payment gateway is integrated in this phase.** A future payment phase should use Paystack or Flutterwave and replace the local paid placeholder with authenticated subscription status.

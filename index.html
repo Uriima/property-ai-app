@@ -133,6 +133,29 @@
     </section>
   </main>
 
+  <div id="subscriptionModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="paywallTitle">
+    <section class="paywall-card reveal-card">
+      <button id="closeSubscription" class="modal-close" type="button" aria-label="Close subscription prompt">×</button>
+      <span class="badge paywall-badge">Starter plan</span>
+      <h2 id="paywallTitle">Unlock unlimited property valuations</h2>
+      <p class="paywall-copy">Subscribe to generate more AI-assisted property estimates, download detailed reports, and access premium valuation insights.</p>
+      <div class="plan-price"><strong>₦2,000</strong><span>/month</span></div>
+      <ul class="plan-features">
+        <li>Run more property valuations</li>
+        <li>Download valuation reports</li>
+        <li>Access detailed value drivers</li>
+        <li>Save time before inspection or negotiation</li>
+        <li>Built for Nigerian property decisions</li>
+      </ul>
+      <p class="plan-note">Formal valuation or inspection may require professional review.</p>
+      <div id="checkoutNotice" class="checkout-notice hidden" role="status">Subscription checkout is being prepared. Please contact Tafid Real Estate to activate access.</div>
+      <div class="paywall-actions">
+        <button id="startStarterPlan" class="btn btn-primary" type="button">Subscribe from ₦2,000/month</button>
+        <a class="btn btn-secondary" href="https://realestate.tafid.org/contact/" target="_blank" rel="noopener">Contact Tafid Real Estate</a>
+      </div>
+    </section>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

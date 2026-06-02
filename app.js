@@ -1,6 +1,8 @@
 const MAX_PHOTOS = 5;
 const MAX_PHOTO_SIZE = 6 * 1024 * 1024;
 const CONTACT_URL = "https://realestate.tafid.org/contact/";
+const FREE_TEST_STORAGE_KEY = "property_ai_free_test_used";
+const PAID_USER_STORAGE_KEY = "property_ai_paid_user";
 const DISCLAIMER = "This is an AI-assisted property estimate based on the information provided. It is not a formal valuation report and should be verified by a qualified property professional.";
 
 const nigeriaData = {
@@ -65,7 +67,11 @@ const elements = {
   buildingAge: $("buildingAge"),
   resultLoading: $("resultLoading"),
   resultCard: $("resultCard"),
-  readyToEstimate: $("readyToEstimate")
+  readyToEstimate: $("readyToEstimate"),
+  subscriptionModal: $("subscriptionModal"),
+  closeSubscription: $("closeSubscription"),
+  startStarterPlan: $("startStarterPlan"),
+  checkoutNotice: $("checkoutNotice")
 };
 
 function init() {
@@ -177,6 +183,11 @@ function attachEvents() {
   elements.galleryBtn.addEventListener("click", () => elements.galleryInput.click());
   elements.cameraInput.addEventListener("change", (event) => handleFiles(event.target.files));
   elements.galleryInput.addEventListener("change", (event) => handleFiles(event.target.files));
+  elements.closeSubscription.addEventListener("click", hideSubscriptionPrompt);
+  elements.startStarterPlan.addEventListener("click", showCheckoutNotice);
+  elements.subscriptionModal.addEventListener("click", (event) => {
+    if (event.target === elements.subscriptionModal) hideSubscriptionPrompt();
+  });
   elements.uploadDropZone.addEventListener("click", (event) => {
     if (!event.target.closest("button")) elements.galleryInput.click();
   });
@@ -205,6 +216,48 @@ function attachEvents() {
     field.addEventListener("input", updateStep);
     field.addEventListener("change", updateStep);
   });
+}
+
+function readStorageFlag(key) {
+  try {
+    return window.localStorage.getItem(key) === "true";
+  } catch (error) {
+    console.warn(`Unable to read ${key} from local storage`, error);
+    return false;
+  }
+}
+
+function writeStorageFlag(key, value) {
+  try {
+    window.localStorage.setItem(key, String(value));
+  } catch (error) {
+    console.warn(`Unable to write ${key} to local storage`, error);
+  }
+}
+
+function isPaidUser() {
+  return readStorageFlag(PAID_USER_STORAGE_KEY);
+}
+
+function hasUsedFreeTest() {
+  return readStorageFlag(FREE_TEST_STORAGE_KEY);
+}
+
+function canGenerateEstimate() {
+  return isPaidUser() || !hasUsedFreeTest();
+}
+
+function showSubscriptionPrompt() {
+  elements.checkoutNotice.classList.add("hidden");
+  elements.subscriptionModal.classList.remove("hidden");
+}
+
+function hideSubscriptionPrompt() {
+  elements.subscriptionModal.classList.add("hidden");
+}
+
+function showCheckoutNotice() {
+  elements.checkoutNotice.classList.remove("hidden");
 }
 
 function showEstimator() {
@@ -366,6 +419,11 @@ function getNumber(element, fallback = 0) {
 }
 
 function runEstimate() {
+  if (!canGenerateEstimate()) {
+    showSubscriptionPrompt();
+    return;
+  }
+
   elements.readyToEstimate.classList.add("hidden");
   elements.resultCard.classList.add("hidden");
   elements.resultLoading.classList.remove("hidden");
@@ -373,6 +431,7 @@ function runEstimate() {
 
   window.setTimeout(() => {
     lastResult = calculateEstimate();
+    if (!isPaidUser()) writeStorageFlag(FREE_TEST_STORAGE_KEY, true);
     renderResult(lastResult);
     elements.resultLoading.classList.add("hidden");
     elements.resultCard.classList.remove("hidden");
@@ -485,13 +544,25 @@ function formatCurrency(value) {
 
 function renderResult(result) {
   const summary = result.propertySummary;
+  const paidUser = isPaidUser();
+  const reportMessage = paidUser
+    ? "Paid access is active. Download your preliminary valuation report for review."
+    : "Your first free estimate is view-only. Subscribe to download detailed reports and run more valuations.";
   elements.resultCard.innerHTML = `
     <div class="result-hero reveal-card">
       <span class="badge">AI-assisted estimate</span>
-      <p>Estimated midpoint</p>
+      <p>Preliminary market estimate</p>
       <strong>${formatCurrency(result.estimate.midpoint)}</strong>
       <span class="range">${formatCurrency(result.estimate.low)} – ${formatCurrency(result.estimate.high)}</span>
       <div class="confidence"><span>Confidence</span><strong>${result.estimate.confidence}%</strong><div><i style="width:${result.estimate.confidence}%"></i></div></div>
+    </div>
+    <div class="report-access-card ${paidUser ? "paid-access" : "free-access"}">
+      <div>
+        <span class="eyebrow">Valuation intelligence report</span>
+        <h4>${paidUser ? "Report download available" : "Free estimate: view-only access"}</h4>
+        <p>${reportMessage}</p>
+      </div>
+      <button id="downloadReport" class="btn ${paidUser ? "btn-primary" : "btn-light"}" type="button" ${paidUser ? "" : "disabled"}>${paidUser ? "Download valuation report" : "Report download is available on paid plans"}</button>
     </div>
     <div class="result-grid">
       ${renderInfoCard("Property summary", [summary.propertyType, `${summary.bedrooms} bedroom(s)`, `${summary.bathrooms} bathroom(s)`, `${summary.toilets} toilet(s)`, summary.condition, `${summary.finishing} finishing`])}
@@ -500,7 +571,7 @@ function renderResult(result) {
       ${renderInfoCard("Risk factors", result.negativeFactors)}
       ${renderInfoCard("Assumptions", result.assumptions)}
     </div>
-    <div class="disclaimer-card"><strong>Disclaimer</strong><p>${result.disclaimer}</p></div>
+    <div class="disclaimer-card"><strong>Professional review recommended</strong><p>${result.disclaimer}</p></div>
     <div class="result-actions">
       <a class="btn btn-primary" href="${CONTACT_URL}" target="_blank" rel="noopener">Request Professional Inspection</a>
       <a class="btn btn-secondary" href="${CONTACT_URL}" target="_blank" rel="noopener">Contact Tafid Real Estate</a>
@@ -508,6 +579,34 @@ function renderResult(result) {
     </div>
   `;
   $("startAnother").addEventListener("click", resetEstimate);
+  if (paidUser) $("downloadReport").addEventListener("click", downloadReport);
+}
+
+function downloadReport() {
+  if (!isPaidUser() || !lastResult) {
+    showSubscriptionPrompt();
+    return;
+  }
+
+  const summary = lastResult.propertySummary;
+  const report = [
+    "Tafid Real Estate - Preliminary Valuation Intelligence Report",
+    "",
+    `Estimated range: ${formatCurrency(lastResult.estimate.low)} - ${formatCurrency(lastResult.estimate.high)}`,
+    `Estimated midpoint: ${formatCurrency(lastResult.estimate.midpoint)}`,
+    `Confidence: ${lastResult.estimate.confidence}%`,
+    `Location: ${summary.location}`,
+    `Property: ${summary.propertyType}, ${summary.bedrooms} bedroom(s)`,
+    "",
+    "Professional review recommended.",
+    lastResult.disclaimer
+  ].join("\n");
+  const url = URL.createObjectURL(new Blob([report], { type: "text/plain;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "property-valuation-report.txt";
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 function renderInfoCard(title, items) {
@@ -515,6 +614,11 @@ function renderInfoCard(title, items) {
 }
 
 function resetEstimate() {
+  if (!canGenerateEstimate()) {
+    showSubscriptionPrompt();
+    return;
+  }
+
   selectedPhotos.forEach((photo) => URL.revokeObjectURL(photo.url));
   selectedPhotos = [];
   lastResult = null;

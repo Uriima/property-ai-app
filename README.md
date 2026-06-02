@@ -105,3 +105,40 @@ After editing the JSON file, run the app locally and complete a sample estimate 
 - No external market feed is connected.
 - No photos are uploaded or analysed by a real AI vision model in this phase.
 - Pricing assumptions are sample values and should be reviewed by a Nigerian real estate professional.
+
+## Subscription-ready access model
+
+The current phase prepares the estimator for a paid product while keeping valuation logic browser-only:
+
+- A new browser receives one free AI-assisted property estimate.
+- The first free result is view-only. Report download is disabled.
+- After the free test is used, another estimate attempt opens the Starter subscription prompt.
+- Starter pricing begins at **₦2,000/month**.
+- A paid-access placeholder enables repeat valuations and downloadable preliminary text reports for development testing.
+- **No payment gateway is integrated in this phase.** A future payment phase should use Paystack or Flutterwave.
+
+The browser-only local storage keys are:
+
+```text
+property_ai_free_test_used
+property_ai_paid_user
+```
+
+These flags contain access-state booleans only. They do not store property details, photos, or sensitive user data.
+
+### Reset access state for local testing
+
+Open the browser developer console on the local app or Vercel Preview and run:
+
+```js
+localStorage.removeItem("property_ai_free_test_used");
+localStorage.removeItem("property_ai_paid_user");
+```
+
+To test the future paid-user placeholder locally, run:
+
+```js
+localStorage.setItem("property_ai_paid_user", "true");
+```
+
+Do not expose the paid-user placeholder as a normal user-facing control. It exists only for development and preview testing until a payment gateway and authenticated subscription state are implemented.

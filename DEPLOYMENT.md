@@ -60,3 +60,29 @@ If future phases add APIs or external services, add placeholder names to `.env.e
 - The estimate uses local structured rules, not a live valuation API.
 - Uploaded photos are not stored or sent to a backend.
 - Pricing assumptions are sample estimates and should be periodically reviewed.
+
+## Subscription-ready preview checks
+
+This phase includes a browser-only free-test limit and a development paid-user placeholder:
+
+```text
+property_ai_free_test_used
+property_ai_paid_user
+```
+
+Before testing the Vercel Preview as a new user, open the browser developer console and run:
+
+```js
+localStorage.removeItem("property_ai_free_test_used");
+localStorage.removeItem("property_ai_paid_user");
+```
+
+Preview reviewers should confirm:
+
+1. The first estimate displays as view-only and report download is disabled.
+2. Another estimate attempt opens the Starter subscription prompt beginning at **₦2,000/month**.
+3. The Subscribe CTA explains that checkout is still being prepared and directs users to Tafid Real Estate.
+4. Setting `localStorage.setItem("property_ai_paid_user", "true")` allows repeat valuations and enables the preliminary text-report download.
+5. Mobile preview widths show the paywall without horizontal overflow.
+
+**No payment gateway is integrated in this phase.** A future production payment integration should use Paystack or Flutterwave. Do not treat the development paid-user local storage flag as secure production entitlement storage.

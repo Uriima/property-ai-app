@@ -99,3 +99,7 @@ Confirm that:
 4. The user can still generate an estimate without uploading a photo if they did not attempt to submit an unsuitable image.
 
 This is a lightweight suitability guard, not a formal inspection or custom YOLO property detector.
+
+### Receipt/document rejection check
+
+In Vercel Preview, upload a receipt or document image after the TensorFlow.js model loads. It should be rejected as non-property media. Only photos with clear property/building/interior evidence should be accepted for valuation confidence.

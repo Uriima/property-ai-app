@@ -3,8 +3,9 @@ const MAX_PHOTO_SIZE = 6 * 1024 * 1024;
 const CONTACT_URL = "https://realestate.tafid.org/contact/";
 const FREE_TEST_STORAGE_KEY = "property_ai_free_test_used";
 const PAID_USER_STORAGE_KEY = "property_ai_paid_user";
-const PROPERTY_PHOTO_KEYWORDS = ["house", "home", "building", "palace", "estate", "apartment", "villa", "mansion", "terrace", "patio", "porch", "door", "window", "roof", "room", "studio couch", "dining table", "entertainment center", "wardrobe", "bookcase", "shower curtain", "bathtub", "washbasin", "kitchen", "refrigerator", "stove", "oven", "dishwasher", "toilet seat", "fountain", "street", "driveway", "greenhouse", "barn", "boathouse", "church", "monastery", "library", "restaurant"];
-const UNRELATED_PHOTO_KEYWORDS = ["shoe", "sandal", "slipper", "sneaker", "boot", "loafer", "running shoe", "clog", "handbag", "backpack", "wallet", "watch", "cellular telephone", "mobile phone", "laptop", "keyboard", "mouse", "bottle", "plate", "cup", "banana", "orange", "pizza", "dog", "cat", "bird", "car", "motorcycle", "bicycle", "person", "jersey", "sock", "sunglass", "lipstick"];
+const PROPERTY_PHOTO_MIN_CONFIDENCE = 0.12;
+const PROPERTY_PHOTO_KEYWORDS = ["house", "home", "building", "palace", "estate", "apartment", "villa", "mansion", "terrace", "patio", "porch", "door", "window", "roof", "room", "studio couch", "dining table", "entertainment center", "wardrobe", "bookcase", "shower curtain", "bathtub", "washbasin", "kitchen", "refrigerator", "stove", "oven", "dishwasher", "toilet seat", "fountain", "street", "driveway", "greenhouse", "barn", "boathouse", "church", "monastery", "library", "restaurant", "lakeside", "boathouse"];
+const UNRELATED_PHOTO_KEYWORDS = ["receipt", "invoice", "menu", "envelope", "packet", "carton", "binder", "book jacket", "paper", "web site", "website", "screen", "monitor", "notebook", "shoe", "sandal", "slipper", "sneaker", "boot", "loafer", "running shoe", "clog", "handbag", "backpack", "wallet", "watch", "cellular telephone", "mobile phone", "laptop", "keyboard", "mouse", "bottle", "plate", "cup", "banana", "orange", "pizza", "dog", "cat", "bird", "car", "motorcycle", "bicycle", "person", "jersey", "sock", "sunglass", "lipstick"];
 const DISCLAIMER = "This is an AI-assisted property estimate based on the information provided. It is not a formal valuation report and should be verified by a qualified property professional.";
 
 const nigeriaData = {
@@ -386,11 +387,15 @@ function loadPhotoScreeningModel() {
   return photoScreeningModelPromise;
 }
 
-function predictionMatches(predictions, keywords) {
-  return predictions.some((prediction) => {
+function getKeywordPrediction(predictions, keywords) {
+  return predictions.find((prediction) => {
     const className = prediction.className.toLowerCase();
     return keywords.some((keyword) => className.includes(keyword));
   });
+}
+
+function predictionMatches(predictions, keywords) {
+  return Boolean(getKeywordPrediction(predictions, keywords));
 }
 
 function describePredictions(predictions) {
@@ -410,15 +415,21 @@ async function screenPropertyPhoto(file, url) {
   const model = await loadPhotoScreeningModel();
   const image = await loadPreviewImage(url);
   const predictions = await model.classify(image, 5);
-  const looksPropertyRelated = predictionMatches(predictions, PROPERTY_PHOTO_KEYWORDS);
-  const looksClearlyUnrelated = predictionMatches(predictions, UNRELATED_PHOTO_KEYWORDS);
+  const propertyPrediction = getKeywordPrediction(predictions, PROPERTY_PHOTO_KEYWORDS);
+  const unrelatedPrediction = getKeywordPrediction(predictions, UNRELATED_PHOTO_KEYWORDS);
+  const hasStrongPropertyEvidence = Boolean(propertyPrediction && propertyPrediction.probability >= PROPERTY_PHOTO_MIN_CONFIDENCE);
+  const accepted = hasStrongPropertyEvidence && !unrelatedPrediction;
 
   return {
-    accepted: looksPropertyRelated || !looksClearlyUnrelated,
+    accepted,
     predictions,
-    reason: looksClearlyUnrelated && !looksPropertyRelated
-      ? `This looks unrelated to a property (${describePredictions(predictions)}).`
-      : "Property photo suitability check passed."
+    propertyPrediction,
+    unrelatedPrediction,
+    reason: accepted
+      ? "Property photo suitability check passed."
+      : unrelatedPrediction
+        ? `This looks like a non-property document or object (${describePredictions(predictions)}).`
+        : `This image does not show enough building or interior evidence (${describePredictions(predictions)}).`
   };
 }
 

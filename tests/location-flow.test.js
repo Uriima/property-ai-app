@@ -130,6 +130,15 @@ async function boot() {
   classificationPredictions = [{ className: "running shoe", probability: 0.9 }];
   const shoeScreening = await run("screenPropertyPhoto({}, 'blob:shoe');");
   assert("shoe photo is rejected by on-device screening", !shoeScreening.accepted);
+
+  classificationPredictions = [{ className: "menu", probability: 0.74 }, { className: "envelope", probability: 0.16 }];
+  const receiptScreening = await run("screenPropertyPhoto({}, 'blob:receipt');");
+  assert("receipt or document photo is rejected", !receiptScreening.accepted);
+
+  classificationPredictions = [{ className: "palace", probability: 0.05 }, { className: "packet", probability: 0.2 }];
+  const weakPropertyScreening = await run("screenPropertyPhoto({}, 'blob:weak-property');");
+  assert("weak or mixed property evidence is rejected", !weakPropertyScreening.accepted);
+
   run("rejectedPropertyPhotoAttempt = true; currentStep = 4; runEstimate();");
   assert("rejected photo blocks valuation and returns to Photos", run("currentStep;") === 0);
   run("rejectedPropertyPhotoAttempt = false;");

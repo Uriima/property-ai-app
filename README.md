@@ -152,3 +152,7 @@ Uploaded images are screened in the browser with TensorFlow.js MobileNet before 
 - No AI image-analysis secret is required.
 - The first screening run requires internet access to load the pinned TensorFlow.js and MobileNet browser assets from jsDelivr.
 - This is a lightweight suitability guard, not a formal property inspection and not a custom YOLO property-detection model. Ambiguous photos may still require the user to retry with a clearer property image.
+
+### Stricter uploaded-photo rules
+
+The photo suitability gate now requires positive property evidence from the on-device ImageNet/MobileNet predictions. Images classified as documents or objects such as receipts, menus, envelopes, packets, shoes, phones, bags, pets, food, or vehicles are rejected. If the model cannot find strong building/interior evidence, the app asks the user to retry with a clearer property photo instead of using that image for valuation confidence.

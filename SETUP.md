@@ -113,3 +113,7 @@ The app loads pinned TensorFlow.js and MobileNet browser scripts from jsDelivr a
 5. Confirm the app rejects it and asks for a property photo before continuing.
 
 The first screening attempt requires an internet connection so the browser can load the model assets. This is a lightweight suitability check, not a formal inspection or custom YOLO detector.
+
+### Test receipt/document rejection
+
+For quality assurance, also try uploading a receipt, invoice, menu, or document photo. It should be rejected and should not increase valuation confidence. The app should ask for a clear property exterior/interior image instead.
